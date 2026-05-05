@@ -1,6 +1,11 @@
-def main():
-    print("Hello from notas-fiscais-python!")
+from fastapi import FastAPI
 
+from src.routes.v1 import router as v1_router
 
-if __name__ == "__main__":
-    main()
+app = FastAPI(
+    title='Notas Fiscais API',
+    version='0.1.0',
+    prefix='/api',
+)
+
+app.include_router(v1_router)
