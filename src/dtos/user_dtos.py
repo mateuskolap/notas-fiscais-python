@@ -35,3 +35,10 @@ class UserRead(User):
     created_at: datetime
     updated_at: datetime
     deleted_at: datetime | None
+
+class UserChangePassword(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
+    password: PasswordStr
+    new_password: PasswordStr
+    new_password_confirm: PasswordStr

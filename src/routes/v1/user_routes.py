@@ -8,9 +8,10 @@ from src.actions.user_actions import (
     find_user_action,
     list_users_action,
     update_user_action,
+    user_password_reset_action,
 )
 from src.dependencies import UserRepo
-from src.dtos.user_dtos import UserCreate, UserRead, UserUpdate
+from src.dtos.user_dtos import UserChangePassword, UserCreate, UserRead, UserUpdate
 
 router = APIRouter(prefix='/users', tags=['users'])
 
@@ -38,3 +39,7 @@ async def update_user(user_id: int, data: UserUpdate, repository: UserRepo):
 @router.delete('/{user_id}', status_code=HTTPStatus.NO_CONTENT)
 async def delete_user(user_id: int, repository: UserRepo):
     await delete_user_action(user_id, repository)
+
+@router.patch('/{user_id}/password', status_code=HTTPStatus.OK, response_model=UserRead)
+async def reset_user_password(user_id: int, data: UserChangePassword, repository: UserRepo):
+    return await user_password_reset_action(user_id, data, repository)
