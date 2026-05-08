@@ -8,7 +8,7 @@ from sqlalchemy.orm import registry
 from src.settings import settings
 
 if sys.platform.startswith('win'):
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # type: ignore
 
 
 engine = create_async_engine(settings.database_url)

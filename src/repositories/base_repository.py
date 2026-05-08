@@ -21,7 +21,7 @@ class BaseRepository(Generic[T]):
         query = select(self.model)
 
         if self._is_soft_deletable:
-            query = query.where(self.model.deleted_at.is_(None))
+            query = query.where(self.model.deleted_at.is_(None))  # type: ignore
 
         return query
 
@@ -48,7 +48,7 @@ class BaseRepository(Generic[T]):
 
     async def find_by_id(self, id: int) -> T | None:
         result = await self.session.execute(
-            self._base_query().where(self.model.id == id)
+            self._base_query().where(self.model.id == id)  # type: ignore
         )
         return result.scalar_one_or_none()
 
