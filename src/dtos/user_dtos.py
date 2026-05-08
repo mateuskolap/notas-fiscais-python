@@ -36,6 +36,7 @@ class UserRead(User):
     updated_at: datetime
     deleted_at: datetime | None
 
+
 class UserChangePassword(BaseModel):
     model_config = ConfigDict(extra='forbid')
 

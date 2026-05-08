@@ -1,6 +1,6 @@
 from typing import Generic, Sequence, TypeVar
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.entities.base_entities import SoftDeleteMixin
@@ -21,7 +21,7 @@ class BaseRepository(Generic[T]):
         query = select(self.model)
 
         if self._is_soft_deletable:
-            query = query.where(self.model.deleted_at.is_(None))  # type: ignore[union-attr]
+            query = query.where(self.model.deleted_at.is_(None))
 
         return query
 
@@ -29,9 +29,26 @@ class BaseRepository(Generic[T]):
         result = await self.session.execute(self._base_query())
         return result.scalars().all()
 
+    async def find_paginated(
+        self, page: int = 1, per_page: int = 20
+    ) -> tuple[Sequence[T], int]:
+        query = self._base_query()
+
+        count_query = select(func.count()).select_from(query.subquery())
+        total = (await self.session.execute(count_query)).scalar_one()
+
+        offset = (page - 1) * per_page
+        items = (
+            (await self.session.execute(query.offset(offset).limit(per_page)))
+            .scalars()
+            .all()
+        )
+
+        return items, total
+
     async def find_by_id(self, id: int) -> T | None:
         result = await self.session.execute(
-            self._base_query().where(self.model.id == id)  # type: ignore[union-attr]
+            self._base_query().where(self.model.id == id)
         )
         return result.scalar_one_or_none()
 

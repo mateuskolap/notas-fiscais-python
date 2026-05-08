@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from src.exceptions.handlers import register_exception_handlers
 from src.routes.v1 import router as v1_router
 
 app = FastAPI(
@@ -9,3 +10,5 @@ app = FastAPI(
 )
 
 app.include_router(v1_router)
+
+register_exception_handlers(app)

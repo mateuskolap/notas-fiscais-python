@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.actions.user_actions import UserActions
 from src.repositories.database import get_session
 from src.repositories.user_repository import UserRepository
 
@@ -14,3 +15,10 @@ async def get_user_repository(session: Session) -> UserRepository:
 
 
 UserRepo = Annotated[UserRepository, Depends(get_user_repository)]
+
+
+async def get_user_actions(repository: UserRepo) -> UserActions:
+    return UserActions(repository)
+
+
+UserAct = Annotated[UserActions, Depends(get_user_actions)]
