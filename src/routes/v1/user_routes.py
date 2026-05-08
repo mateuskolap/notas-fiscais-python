@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from src.dependencies import UserAct
+from src.dependencies import CurrentUser, UserAct
 from src.dtos.pagination_dtos import PaginatedResponse, PaginationParams
 from src.dtos.response_dtos import ErrorResponse
 from src.dtos.user_dtos import UserChangePassword, UserCreate, UserRead, UserUpdate
@@ -18,6 +18,7 @@ router = APIRouter(prefix='/users', tags=['users'])
 )
 async def list_users(
     actions: UserAct,
+    current_user: CurrentUser,
     pagination: Annotated[PaginationParams, Depends()],
 ):
     return await actions.list_paginated(pagination.page, pagination.per_page)
@@ -29,7 +30,7 @@ async def list_users(
     response_model=UserRead,
     responses={404: {'model': ErrorResponse}},
 )
-async def find_user(user_id: int, actions: UserAct):
+async def find_user(user_id: int, current_user: CurrentUser, actions: UserAct):
     return await actions.find(user_id)
 
 
@@ -52,7 +53,9 @@ async def create_user(data: UserCreate, actions: UserAct):
         409: {'model': ErrorResponse},
     },
 )
-async def update_user(user_id: int, data: UserUpdate, actions: UserAct):
+async def update_user(
+    user_id: int, data: UserUpdate, current_user: CurrentUser, actions: UserAct
+):
     return await actions.update(user_id, data)
 
 
@@ -61,7 +64,7 @@ async def update_user(user_id: int, data: UserUpdate, actions: UserAct):
     status_code=HTTPStatus.NO_CONTENT,
     responses={404: {'model': ErrorResponse}},
 )
-async def delete_user(user_id: int, actions: UserAct):
+async def delete_user(user_id: int, current_user: CurrentUser, actions: UserAct):
     await actions.delete(user_id)
 
 
@@ -75,5 +78,7 @@ async def delete_user(user_id: int, actions: UserAct):
         422: {'model': ErrorResponse},
     },
 )
-async def reset_user_password(user_id: int, data: UserChangePassword, actions: UserAct):
+async def reset_user_password(
+    user_id: int, data: UserChangePassword, current_user: CurrentUser, actions: UserAct
+):
     return await actions.change_password(user_id, data)

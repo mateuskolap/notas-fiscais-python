@@ -1,7 +1,14 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class DatabaseSettings(BaseSettings):
+class AuthSettings(BaseSettings):
+    SECRET_KEY: str
+    ALGORITHM: str = 'HS256'
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+
+class DatabaseSettings(AuthSettings):
     DB_SCHEME: str
     DB_USER: str
     DB_PASSWORD: str

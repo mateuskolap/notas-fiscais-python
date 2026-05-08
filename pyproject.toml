@@ -12,6 +12,7 @@ dependencies = [
     "httpx>=0.28.1",
     "psycopg[binary]>=3.3.3",
     "pydantic-settings>=2.14.0",
+    "pyjwt>=2.12.1",
     "sqlalchemy[asyncio]>=2.0.49",
 ]
 
