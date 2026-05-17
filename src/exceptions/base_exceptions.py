@@ -27,3 +27,9 @@ class ValidationException(AppException):
     """Business rule validation failed."""
 
     pass
+
+
+class NfceScrapingException(AppException):
+    """Error while scraping NFC-e."""
+
+    pass

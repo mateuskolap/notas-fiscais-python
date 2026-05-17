@@ -3,7 +3,7 @@ from typing import Generic, Sequence, TypeVar
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.entities.base_entities import SoftDeleteMixin
+from src.entities.base_entities import SoftDeleteEntityMixin
 
 T = TypeVar('T')
 
@@ -15,7 +15,7 @@ class BaseRepository(Generic[T]):
 
     @property
     def _is_soft_deletable(self) -> bool:
-        return issubclass(self.model, SoftDeleteMixin)
+        return issubclass(self.model, SoftDeleteEntityMixin)
 
     def _base_query(self):
         query = select(self.model)
@@ -27,7 +27,7 @@ class BaseRepository(Generic[T]):
 
     async def find_all(self) -> Sequence[T]:
         result = await self.session.execute(self._base_query())
-        return result.scalars().all()
+        return result.scalars().unique().all()
 
     async def find_paginated(
         self, page: int = 1, per_page: int = 20
@@ -41,6 +41,7 @@ class BaseRepository(Generic[T]):
         items = (
             (await self.session.execute(query.offset(offset).limit(per_page)))
             .scalars()
+            .unique()
             .all()
         )
 
@@ -50,7 +51,7 @@ class BaseRepository(Generic[T]):
         result = await self.session.execute(
             self._base_query().where(self.model.id == id)  # type: ignore
         )
-        return result.scalar_one_or_none()
+        return result.unique().scalar_one_or_none()
 
     async def create(self, entity: T) -> T:
         self.session.add(entity)
@@ -64,7 +65,7 @@ class BaseRepository(Generic[T]):
         return entity
 
     async def delete(self, entity: T) -> None:
-        if self._is_soft_deletable and isinstance(entity, SoftDeleteMixin):
+        if self._is_soft_deletable and isinstance(entity, SoftDeleteEntityMixin):
             entity.delete()
             await self.session.commit()
         else:

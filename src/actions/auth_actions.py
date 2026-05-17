@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 from src.dtos.auth_dtos import TokenResponse
-from src.entities.refresh_token_entity import RefreshTokenModel
+from src.entities.refresh_token_entity import RefreshTokenEntity
 from src.exceptions.base_exceptions import UnauthorizedException
 from src.repositories.refresh_token_repository import RefreshTokenRepository
 from src.repositories.user_repository import UserRepository
@@ -44,7 +44,7 @@ class AuthActions:
             days=settings.REFRESH_TOKEN_EXPIRE_DAYS
         )
 
-        new_refresh_token = RefreshTokenModel(
+        new_refresh_token = RefreshTokenEntity(
             token=refresh_token_str,
             user_id=user_id,
             expires_at=expires_at,

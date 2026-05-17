@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from src.exceptions.base_exceptions import (
     AppException,
     ConflictException,
+    NfceScrapingException,
     NotFoundException,
     UnauthorizedException,
     ValidationException,
@@ -46,6 +47,15 @@ def register_exception_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         return JSONResponse(
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            content={'detail': exc.detail},
+        )
+
+    @app.exception_handler(NfceScrapingException)
+    async def nfce_scraping_handler(
+        request: Request, exc: NfceScrapingException
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=HTTPStatus.BAD_GATEWAY,
             content={'detail': exc.detail},
         )
 

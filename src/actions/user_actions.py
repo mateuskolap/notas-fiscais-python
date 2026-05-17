@@ -1,6 +1,6 @@
 from src.actions.base_actions import BaseActions
 from src.dtos.user_dtos import UserChangePassword, UserCreate, UserUpdate
-from src.entities.user_entity import UserModel
+from src.entities.user_entity import UserEntity
 from src.exceptions.base_exceptions import (
     ConflictException,
     UnauthorizedException,
@@ -10,17 +10,17 @@ from src.repositories.user_repository import UserRepository
 from src.services.password_service import hash_password, verify_password
 
 
-class UserActions(BaseActions[UserModel]):
+class UserActions(BaseActions[UserEntity]):
     def __init__(self, repository: UserRepository):
         super().__init__(repository, entity_name='User')
         self.repository = repository
 
-    async def create(self, data: UserCreate) -> UserModel:
+    async def create(self, data: UserCreate) -> UserEntity:
         existing = await self.repository.find_by_email(data.email)
         if existing:
             raise ConflictException('Email already registered')
 
-        user = UserModel(
+        user = UserEntity(
             name=data.name,
             email=data.email,
             password=hash_password(data.password),
@@ -28,7 +28,7 @@ class UserActions(BaseActions[UserModel]):
 
         return await self.repository.create(user)
 
-    async def update(self, user_id: int, data: UserUpdate) -> UserModel:
+    async def update(self, user_id: int, data: UserUpdate) -> UserEntity:
         user = await self._get_or_raise(user_id)
 
         update_data = data.model_dump(exclude_unset=True)
@@ -48,7 +48,7 @@ class UserActions(BaseActions[UserModel]):
 
     async def change_password(
         self, user_id: int, data: UserChangePassword
-    ) -> UserModel:
+    ) -> UserEntity:
         user = await self._get_or_raise(user_id)
 
         if not verify_password(data.password, user.password):

@@ -1,4 +1,13 @@
-def clean_text(value, remove_text: str = ''):
+import re
+import unicodedata
+from decimal import Decimal
+
+from bs4 import NavigableString, Tag
+
+
+def clean_text(
+    value: Tag | NavigableString | None, remove_text: str = ''
+) -> str | None:
     if not value:
         return None
 
@@ -10,14 +19,22 @@ def clean_text(value, remove_text: str = ''):
     return text.strip()
 
 
-def to_float(value: str | None):
+def parse_brazilian_decimal(value: str | None) -> Decimal:
     if not value:
-        return None
+        return Decimal('0.00')
 
-    value = value.replace('.', '')
-    value = value.replace(',', '.')
+    cleaned = re.sub(r'[^\d,.-]', '', value.strip())
+    cleaned = cleaned.replace(',', '.')
 
     try:
-        return float(value)
-    except ValueError:
-        return None
+        return Decimal(cleaned)
+    except Exception:
+        return Decimal('0.00')
+
+
+def normalize(value: str | None) -> str:
+    if not value:
+        return ''
+    value = value.lower()
+    value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode()
+    return re.sub(r'[^a-z0-9]', '', value)

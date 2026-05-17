@@ -7,7 +7,7 @@ from src.repositories.database import table_registry
 
 
 @table_registry.mapped_as_dataclass()
-class ModelMixin:
+class EntityMixin:
     __abstract__ = True
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
@@ -20,7 +20,7 @@ class ModelMixin:
 
 
 @table_registry.mapped_as_dataclass()
-class SoftDeleteMixin(ModelMixin):
+class SoftDeleteEntityMixin(EntityMixin):
     __abstract__ = True
 
     deleted_at: Mapped[datetime | None] = mapped_column(
