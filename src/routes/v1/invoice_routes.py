@@ -7,7 +7,6 @@ from src.dependencies import CurrentUser, InvoiceAct
 from src.dtos.invoice_dtos import (
     InvoiceDetailResponse,
     InvoiceItemResponse,
-    InvoiceListResponse,
     InvoiceResponse,
 )
 from src.dtos.nfce_dtos import ExtractInvoiceRequest
@@ -23,7 +22,7 @@ router = APIRouter(
 @router.get(
     '',
     status_code=HTTPStatus.OK,
-    response_model=PaginatedResponse[InvoiceListResponse],
+    response_model=PaginatedResponse[InvoiceResponse],
 )
 async def list_invoices(
     actions: InvoiceAct,

@@ -30,7 +30,7 @@ class InvoiceUserResponse(BaseModel):
     email: str
 
 
-class InvoiceListResponse(BaseModel):
+class InvoiceResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     establishment: EstablishmentResponse
@@ -40,9 +40,5 @@ class InvoiceListResponse(BaseModel):
     issued_at: datetime
 
 
-class InvoiceDetailResponse(InvoiceListResponse):
+class InvoiceDetailResponse(InvoiceResponse):
     user: InvoiceUserResponse
-
-
-class InvoiceResponse(InvoiceListResponse):
-    items: list[InvoiceItemResponse]
