@@ -3,12 +3,12 @@ from decimal import Decimal
 from sqlalchemy import ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.entities.base_entities import EntityMixin
+from src.entities.base_entities import SoftDeleteEntityMixin
 from src.repositories.database import table_registry
 
 
 @table_registry.mapped_as_dataclass()
-class InvoiceItemEntity(EntityMixin):
+class InvoiceItemEntity(SoftDeleteEntityMixin):
     __tablename__ = 'invoice_items'
 
     invoice_id: Mapped[int] = mapped_column(ForeignKey('invoices.id'), nullable=False)

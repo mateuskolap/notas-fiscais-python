@@ -34,7 +34,6 @@ class UserRead(User):
     id: int
     created_at: datetime
     updated_at: datetime
-    deleted_at: datetime | None
 
 
 class UserChangePassword(BaseModel):

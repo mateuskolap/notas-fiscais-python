@@ -1,12 +1,12 @@
 from sqlalchemy import String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.entities.base_entities import EntityMixin
+from src.entities.base_entities import SoftDeleteEntityMixin
 from src.repositories.database import table_registry
 
 
 @table_registry.mapped_as_dataclass()
-class EstablishmentEntity(EntityMixin):
+class EstablishmentEntity(SoftDeleteEntityMixin):
     __tablename__ = 'establishments'
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
