@@ -59,6 +59,22 @@ async def update_user(
     return await actions.update(user_id, data)
 
 
+@router.patch(
+    '/me',
+    status_code=HTTPStatus.OK,
+    response_model=UserRead,
+    responses={
+        409: {'model': ErrorResponse},
+    },
+)
+async def update_current_user(
+    data: UserUpdate,
+    current_user: CurrentUser,
+    actions: UserAct,
+):
+    return await actions.update(current_user.id, data)
+
+
 @router.delete(
     '/{user_id}',
     status_code=HTTPStatus.NO_CONTENT,
