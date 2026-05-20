@@ -25,17 +25,29 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
         self.invoice_repo = invoice_repo
         self.invoice_item_repo = invoice_item_repo
 
-    async def find_with_user(self, id: int) -> InvoiceEntity:
-        entity = await self.invoice_repo.find_by_id_with_user(id)
+    async def list_paginated_by_user(
+        self, user_id: int, page: int = 1, per_page: int = 20
+    ) -> PaginatedResponse[InvoiceEntity]:
+        items, total = await self.invoice_repo.find_paginated_by_user(
+            user_id, page, per_page
+        )
+        return PaginatedResponse.create(
+            items=list(items), total=total, page=page, per_page=per_page
+        )
+
+    async def find_with_user_scoped(self, id: int, user_id: int) -> InvoiceEntity:
+        entity = await self.invoice_repo.find_by_id_with_user_scoped(id, user_id)
         if not entity:
             raise NotFoundException(f'{self._entity_name} not found')
         return entity
 
     async def list_items_paginated(
-        self, invoice_id: int, page: int = 1, per_page: int = 20
+        self, invoice_id: int, user_id: int, page: int = 1, per_page: int = 20
     ) -> PaginatedResponse[InvoiceItemEntity]:
-        # Validate invoice exists
-        await self._get_or_raise(invoice_id)
+        # Validate invoice exists and belongs to user
+        invoice = await self.invoice_repo.find_by_id_and_user(invoice_id, user_id)
+        if not invoice:
+            raise NotFoundException(f'{self._entity_name} not found')
         items, total = await self.invoice_item_repo.find_paginated_by_invoice(
             invoice_id, page, per_page
         )
@@ -44,7 +56,7 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
         )
 
     async def extract_and_persist(self, url: str, user: UserEntity) -> InvoiceEntity:
-        existing_invoice = await self.invoice_repo.find_by_url(url)
+        existing_invoice = await self.invoice_repo.find_by_url_and_user(url, user.id)
         if existing_invoice:
             raise ConflictException(
                 'NFC-e already extracted and registered in the system.'

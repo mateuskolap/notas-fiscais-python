@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from src.exceptions.base_exceptions import (
     AppException,
     ConflictException,
+    ForbiddenException,
     NfceScrapingException,
     NotFoundException,
     UnauthorizedException,
@@ -38,6 +39,15 @@ def register_exception_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         return JSONResponse(
             status_code=HTTPStatus.UNAUTHORIZED,
+            content={'detail': exc.detail},
+        )
+
+    @app.exception_handler(ForbiddenException)
+    async def forbidden_handler(
+        request: Request, exc: ForbiddenException
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=HTTPStatus.FORBIDDEN,
             content={'detail': exc.detail},
         )
 

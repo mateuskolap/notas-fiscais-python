@@ -23,6 +23,12 @@ class UnauthorizedException(AppException):
     pass
 
 
+class ForbiddenException(AppException):
+    """Access to a resource that belongs to another user."""
+
+    pass
+
+
 class ValidationException(AppException):
     """Business rule validation failed."""
 

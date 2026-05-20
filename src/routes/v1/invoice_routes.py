@@ -29,7 +29,9 @@ async def list_invoices(
     current_user: CurrentUser,
     pagination: Annotated[PaginationParams, Depends()],
 ):
-    return await actions.list_paginated(pagination.page, pagination.per_page)
+    return await actions.list_paginated_by_user(
+        current_user.id, pagination.page, pagination.per_page
+    )
 
 
 @router.get(
@@ -43,7 +45,7 @@ async def find_invoice(
     actions: InvoiceAct,
     current_user: CurrentUser,
 ):
-    return await actions.find_with_user(invoice_id)
+    return await actions.find_with_user_scoped(invoice_id, current_user.id)
 
 
 @router.get(
@@ -59,7 +61,7 @@ async def list_invoice_items(
     pagination: Annotated[PaginationParams, Depends()],
 ):
     return await actions.list_items_paginated(
-        invoice_id, pagination.page, pagination.per_page
+        invoice_id, current_user.id, pagination.page, pagination.per_page
     )
 
 
