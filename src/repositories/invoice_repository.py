@@ -8,9 +8,9 @@ from src.entities.invoice_entity import InvoiceEntity
 from src.repositories.base_repository import BaseRepository
 
 
-class InvoiceRepository(BaseRepository[InvoiceEntity]):
-    def __init__(self, session: AsyncSession):
-        super().__init__(InvoiceEntity, session)
+class InvoiceRepository(BaseRepository[InvoiceEntity], model=InvoiceEntity):
+    def _query(self):
+        return InvoiceQueryBuilder(self)
 
     def _base_query(self):
         return (
@@ -22,70 +22,88 @@ class InvoiceRepository(BaseRepository[InvoiceEntity]):
         )
 
     async def find_by_url(self, url: str) -> InvoiceEntity | None:
-        result = await self.session.execute(
-            self
-            ._base_query()
-            .options(selectinload(InvoiceEntity.items))
-            .where(InvoiceEntity.source_url == url)
+        return await (
+            self._query()
+            .with_items()
+            .where_url(url)
+            .first()
         )
-        return result.unique().scalar_one_or_none()
 
     async def find_by_id_with_user(self, id: int) -> InvoiceEntity | None:
-        result = await self.session.execute(
-            self
-            ._base_query()
-            .options(selectinload(InvoiceEntity.user))
-            .where(InvoiceEntity.id == id)
+        return await (
+            self._query()
+            .with_user()
+            .where_id(id)
+            .first()
         )
-        return result.unique().scalar_one_or_none()
 
     async def find_paginated_by_user(
         self, user_id: int, page: int = 1, per_page: int = 20
     ) -> tuple[Sequence[InvoiceEntity], int]:
-        query = self._base_query().where(InvoiceEntity.user_id == user_id)
-
-        count_query = select(func.count()).select_from(query.subquery())
-        total = (await self.session.execute(count_query)).scalar_one()
-
-        offset = (page - 1) * per_page
-        items = (
-            (await self.session.execute(query.offset(offset).limit(per_page)))
-            .scalars()
-            .unique()
-            .all()
+        return await (
+            self._query()
+            .where_user(user_id)
+            .paginated(page, per_page)
         )
-
-        return items, total
 
     async def find_by_id_and_user(self, id: int, user_id: int) -> InvoiceEntity | None:
-        result = await self.session.execute(
-            self
-            ._base_query()
-            .where(InvoiceEntity.id == id)
-            .where(InvoiceEntity.user_id == user_id)
+        return await (
+            self._query()
+            .where_id(id)
+            .where_user(user_id)
+            .first()
         )
-        return result.unique().scalar_one_or_none()
 
     async def find_by_id_with_user_scoped(
         self, id: int, user_id: int
     ) -> InvoiceEntity | None:
-        result = await self.session.execute(
-            self
-            ._base_query()
-            .options(selectinload(InvoiceEntity.user))
-            .where(InvoiceEntity.id == id)
-            .where(InvoiceEntity.user_id == user_id)
+        return await (
+            self._query()
+            .with_user()
+            .where_id(id)
+            .where_user(user_id)
+            .first()
         )
-        return result.unique().scalar_one_or_none()
 
     async def find_by_url_and_user(
         self, url: str, user_id: int
     ) -> InvoiceEntity | None:
-        result = await self.session.execute(
-            self
-            ._base_query()
-            .options(selectinload(InvoiceEntity.items))
-            .where(InvoiceEntity.source_url == url)
-            .where(InvoiceEntity.user_id == user_id)
+        return await (
+            self._query()
+            .with_items()
+            .where_url(url)
+            .where_user(user_id)
+            .first()
         )
+
+class InvoiceQueryBuilder:
+    def __init__(self, repo: InvoiceRepository):
+        self._repo = repo
+        self._query = repo._base_query()
+
+    def with_items(self):
+        self._query = self._query.options(selectinload(InvoiceEntity.items))
+        return self
+
+    def with_user(self):
+        self._query = self._query.options(selectinload(InvoiceEntity.user))
+        return self
+
+    def where_id(self, id: int):
+        self._query = self._query.where(InvoiceEntity.id == id)
+        return self
+
+    def where_url(self, url: str):
+        self._query = self._query.where(InvoiceEntity.source_url == url)
+        return self
+
+    def where_user(self, user_id: int):
+        self._query = self._query.where(InvoiceEntity.user_id == user_id)
+        return self
+
+    async def first(self) -> InvoiceEntity | None:
+        result = await self._repo.session.execute(self._query)
         return result.unique().scalar_one_or_none()
+
+    async def paginated(self, page: int, per_page: int):
+        return await self._repo._paginate_query(self._query, page, per_page)

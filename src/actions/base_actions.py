@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar
+from typing import Awaitable, Callable, Generic, Sequence, TypeVar
 
 from src.dtos.pagination_dtos import PaginatedResponse
 from src.exceptions.base_exceptions import NotFoundException
@@ -12,18 +12,41 @@ class BaseActions(Generic[T]):
         self.repository = repository
         self._entity_name = entity_name
 
-    async def _get_or_raise(self, id: int) -> T:
-        entity = await self.repository.find_by_id(id)
+    async def _get_or_raise(
+        self,
+        id: int | None = None,
+        *,
+        finder: Callable | None = None,
+        message: str | None = None,
+    ) -> T:
+        if finder:
+            entity = await finder()
+        elif id is not None:
+            entity = await self.repository.find_by_id(id)
+        else:
+            raise ValueError("Either id or finder must be provided")
+
         if not entity:
-            raise NotFoundException(f'{self._entity_name} not found')
+            raise NotFoundException(message or f'{self._entity_name} not found')
         return entity
+
+    async def _paginated_query(
+        self,
+        finder: Callable[..., Awaitable[tuple[Sequence, int]]],
+        page: int,
+        per_page: int,
+        **finder_kwargs,
+    ) -> PaginatedResponse[T]:
+        items, total = await finder(page=page, per_page=per_page, **finder_kwargs)
+        return PaginatedResponse.create(
+            items=list(items), total=total, page=page, per_page=per_page
+        )
 
     async def list_paginated(
         self, page: int = 1, per_page: int = 20
     ) -> PaginatedResponse[T]:
-        items, total = await self.repository.find_paginated(page, per_page)
-        return PaginatedResponse.create(
-            items=list(items), total=total, page=page, per_page=per_page
+        return await self._paginated_query(
+            self.repository.find_paginated, page, per_page
         )
 
     async def find(self, id: int) -> T:

@@ -5,7 +5,8 @@ from src.entities.establishment_entity import EstablishmentEntity
 from src.entities.invoice_entity import InvoiceEntity
 from src.entities.invoice_item_entity import InvoiceItemEntity
 from src.entities.user_entity import UserEntity
-from src.exceptions.base_exceptions import ConflictException, NotFoundException
+from src.exceptions.base_exceptions import ConflictException
+from src.mappers import EntityMapper
 from src.repositories.establishment_repository import EstablishmentRepository
 from src.repositories.invoice_item_repository import InvoiceItemRepository
 from src.repositories.invoice_repository import InvoiceRepository
@@ -28,31 +29,23 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
     async def list_paginated_by_user(
         self, user_id: int, page: int = 1, per_page: int = 20
     ) -> PaginatedResponse[InvoiceEntity]:
-        items, total = await self.invoice_repo.find_paginated_by_user(
-            user_id, page, per_page
-        )
-        return PaginatedResponse.create(
-            items=list(items), total=total, page=page, per_page=per_page
+        return await self._paginated_query(
+            self.invoice_repo.find_paginated_by_user, page, per_page, user_id=user_id
         )
 
     async def find_with_user_scoped(self, id: int, user_id: int) -> InvoiceEntity:
-        entity = await self.invoice_repo.find_by_id_with_user_scoped(id, user_id)
-        if not entity:
-            raise NotFoundException(f'{self._entity_name} not found')
-        return entity
+        return await self._get_or_raise(
+            finder=lambda: self.invoice_repo.find_by_id_with_user_scoped(id, user_id)
+        )
 
     async def list_items_paginated(
         self, invoice_id: int, user_id: int, page: int = 1, per_page: int = 20
     ) -> PaginatedResponse[InvoiceItemEntity]:
-        # Validate invoice exists and belongs to user
-        invoice = await self.invoice_repo.find_by_id_and_user(invoice_id, user_id)
-        if not invoice:
-            raise NotFoundException(f'{self._entity_name} not found')
-        items, total = await self.invoice_item_repo.find_paginated_by_invoice(
-            invoice_id, page, per_page
+        await self._get_or_raise(
+            finder=lambda: self.invoice_repo.find_by_id_and_user(invoice_id, user_id)
         )
-        return PaginatedResponse.create(
-            items=list(items), total=total, page=page, per_page=per_page
+        return await self._paginated_query(
+            self.invoice_item_repo.find_paginated_by_invoice, page, per_page, invoice_id=invoice_id
         )
 
     async def extract_and_persist(self, url: str, user: UserEntity) -> InvoiceEntity:
@@ -87,18 +80,12 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
             )
         )
 
-        items_to_create = [
-            InvoiceItemEntity(
-                invoice_id=invoice.id,
-                description=item.description.upper(),
-                code=item.code,
-                unit=item.unit,
-                quantity=item.quantity,
-                unit_price=item.unit_price,
-                total_price=item.total_price,
-            )
-            for item in parsed.items
-        ]
+        items_to_create = EntityMapper.to_entities(
+            parsed.items,
+            InvoiceItemEntity,
+            description_transform=lambda d: d.upper(),
+            invoice_id=invoice.id,
+        )
 
         await self.invoice_item_repo.create_bulk(items_to_create)
 

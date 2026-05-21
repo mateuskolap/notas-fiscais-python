@@ -6,9 +6,7 @@ from src.entities.refresh_token_entity import RefreshTokenEntity
 from src.repositories.base_repository import BaseRepository
 
 
-class RefreshTokenRepository(BaseRepository[RefreshTokenEntity]):
-    def __init__(self, session: AsyncSession):
-        super().__init__(RefreshTokenEntity, session)
+class RefreshTokenRepository(BaseRepository[RefreshTokenEntity], model=RefreshTokenEntity):
 
     async def find_valid_token(self, token: str) -> RefreshTokenEntity | None:
         now = datetime.now(timezone.utc)

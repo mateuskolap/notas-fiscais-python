@@ -1,7 +1,7 @@
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from entities.base_entities import EntityMixin
+from src.entities.base_entities import EntityMixin
 from src.repositories.database import table_registry
 
 

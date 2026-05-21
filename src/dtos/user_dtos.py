@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, EmailStr
 
+from src.dtos.base_dtos import BaseReadDTO, BaseWriteDTO
 from src.dtos.validators import PasswordStr
 
 
@@ -10,15 +11,11 @@ class UserBase(BaseModel):
     email: EmailStr
 
 
-class UserCreate(UserBase):
-    model_config = ConfigDict(extra='forbid')
-
+class UserCreate(UserBase, BaseWriteDTO):
     password: PasswordStr
 
 
-class UserUpdate(BaseModel):
-    model_config = ConfigDict(extra='forbid')
-
+class UserUpdate(BaseWriteDTO):
     name: str | None = None
     email: EmailStr | None = None
     password: PasswordStr | None = None
@@ -28,17 +25,13 @@ class User(UserBase):
     pass
 
 
-class UserRead(User):
-    model_config = ConfigDict(from_attributes=True)
-
+class UserRead(User, BaseReadDTO):
     id: int
     created_at: datetime
     updated_at: datetime
 
 
-class UserChangePassword(BaseModel):
-    model_config = ConfigDict(extra='forbid')
-
+class UserChangePassword(BaseWriteDTO):
     password: PasswordStr
     new_password: PasswordStr
     new_password_confirm: PasswordStr

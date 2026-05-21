@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Type, TypeVar
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -26,29 +26,22 @@ Session = Annotated[AsyncSession, Depends(get_session)]
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/auth/login')
 
 
-async def get_user_repository(session: Session) -> UserRepository:
-    return UserRepository(session)
+T = TypeVar("T")
 
+def _repository_dependency(repo_class: Type[T]):
+    async def _get_repository(session: Session) -> T:
+        return repo_class(session)
+    _get_repository.__name__ = f"get_{repo_class.__name__.lower()}"
+    return _get_repository
 
-UserRepo = Annotated[UserRepository, Depends(get_user_repository)]
-
+UserRepo = Annotated[UserRepository, Depends(_repository_dependency(UserRepository))]
 
 async def get_user_actions(repository: UserRepo) -> UserActions:
     return UserActions(repository)
 
-
 UserAct = Annotated[UserActions, Depends(get_user_actions)]
 
-
-async def get_refresh_token_repository(
-    session: Session,
-) -> RefreshTokenRepository:
-    return RefreshTokenRepository(session)
-
-
-RefreshTokenRepo = Annotated[
-    RefreshTokenRepository, Depends(get_refresh_token_repository)
-]
+RefreshTokenRepo = Annotated[RefreshTokenRepository, Depends(_repository_dependency(RefreshTokenRepository))]
 
 
 async def get_auth_actions(
@@ -67,27 +60,11 @@ async def get_nfce_actions() -> NfceActions:
 NfceAct = Annotated[NfceActions, Depends(get_nfce_actions)]
 
 
-async def get_establishment_repository(session: Session) -> EstablishmentRepository:
-    return EstablishmentRepository(session)
+EstablishmentRepo = Annotated[EstablishmentRepository, Depends(_repository_dependency(EstablishmentRepository))]
 
+InvoiceRepo = Annotated[InvoiceRepository, Depends(_repository_dependency(InvoiceRepository))]
 
-EstablishmentRepo = Annotated[
-    EstablishmentRepository, Depends(get_establishment_repository)
-]
-
-
-async def get_invoice_repository(session: Session) -> InvoiceRepository:
-    return InvoiceRepository(session)
-
-
-InvoiceRepo = Annotated[InvoiceRepository, Depends(get_invoice_repository)]
-
-
-async def get_invoice_item_repository(session: Session) -> InvoiceItemRepository:
-    return InvoiceItemRepository(session)
-
-
-InvoiceItemRepo = Annotated[InvoiceItemRepository, Depends(get_invoice_item_repository)]
+InvoiceItemRepo = Annotated[InvoiceItemRepository, Depends(_repository_dependency(InvoiceItemRepository))]
 
 
 async def get_invoice_actions(

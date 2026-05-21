@@ -1,23 +1,23 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
+
+from src.dtos.base_dtos import BaseReadDTO, BaseWriteDTO
 
 
 class PermissionBase(BaseModel):
     name: str
 
 
-class PermissionCreate(PermissionBase):
-    model_config = ConfigDict(extra='forbid')
+class PermissionCreate(PermissionBase, BaseWriteDTO):
+    pass
 
 
 class Permission(PermissionBase):
     pass
 
 
-class PermissionRead(Permission):
-    model_config = ConfigDict(from_attributes=True)
-
+class PermissionRead(Permission, BaseReadDTO):
     id: int
     created_at: datetime
     updated_at: datetime
