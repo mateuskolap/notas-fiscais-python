@@ -26,12 +26,7 @@ class BaseRepository(Generic[T]):
         return issubclass(self.model, SoftDeleteEntityMixin)
 
     def _base_query(self):
-        query = select(self.model)
-
-        if self._is_soft_deletable:
-            query = query.where(self.model.deleted_at.is_(None))  # type: ignore
-
-        return query
+        return select(self.model)
 
     async def find_all(self) -> Sequence[T]:
         result = await self.session.execute(self._base_query())
