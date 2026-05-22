@@ -8,6 +8,7 @@ from src.dtos.pagination_dtos import PaginatedResponse, PaginationParams
 from src.dtos.response_dtos import ErrorResponse
 from src.dtos.role_dtos import (
     RoleCreate,
+    RoleFilterParams,
     RoleRead,
     RoleReadSimple,
     RoleUpdate,
@@ -39,8 +40,9 @@ async def list_roles(
     user: Annotated[UserEntity, Depends(require_permission(PermissionEnum.ROLES_READ))],
     actions: RoleAct,
     pagination: Annotated[PaginationParams, Depends()],
+    filters: Annotated[RoleFilterParams, Depends()],
 ):
-    return await actions.list_paginated(pagination.page, pagination.per_page)
+    return await actions.list_paginated(pagination.page, pagination.per_page, filters)
 
 
 @router.get(

@@ -1,5 +1,6 @@
 from sqlalchemy.orm import selectinload
 
+from src.dtos.role_dtos import RoleFilterParams
 from src.entities.role_entity import RoleEntity
 from src.repositories.base_repository import BaseRepository
 
@@ -16,3 +17,9 @@ class RoleRepository(BaseRepository[RoleEntity], model=RoleEntity):
             .where(RoleEntity.id == id)
         )
         return result.unique().scalar_one_or_none()
+
+    def _apply_filters(self, query, filters: RoleFilterParams | None):
+        if filters:
+            if filters.name is not None:
+                query = query.where(RoleEntity.name.ilike(f'%{filters.name}%'))
+        return query

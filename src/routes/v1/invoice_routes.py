@@ -6,6 +6,8 @@ from fastapi import APIRouter, Depends
 from src.dependencies import CurrentUser, InvoiceAct
 from src.dtos.invoice_dtos import (
     InvoiceDetailResponse,
+    InvoiceFilterParams,
+    InvoiceItemFilterParams,
     InvoiceItemResponse,
     InvoiceResponse,
 )
@@ -28,9 +30,10 @@ async def list_invoices(
     actions: InvoiceAct,
     current_user: CurrentUser,
     pagination: Annotated[PaginationParams, Depends()],
+    filters: Annotated[InvoiceFilterParams, Depends()],
 ):
     return await actions.list_paginated_by_user(
-        current_user.id, pagination.page, pagination.per_page
+        current_user.id, pagination.page, pagination.per_page, filters
     )
 
 
@@ -59,9 +62,10 @@ async def list_invoice_items(
     actions: InvoiceAct,
     current_user: CurrentUser,
     pagination: Annotated[PaginationParams, Depends()],
+    filters: Annotated[InvoiceItemFilterParams, Depends()],
 ):
     return await actions.list_items_paginated(
-        invoice_id, current_user.id, pagination.page, pagination.per_page
+        invoice_id, current_user.id, pagination.page, pagination.per_page, filters
     )
 
 

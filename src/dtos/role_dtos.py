@@ -1,6 +1,9 @@
 from datetime import datetime
+from typing import Annotated, Literal
 
-from src.dtos.base_dtos import BaseReadDTO, BaseWriteDTO
+from fastapi import Query
+
+from src.dtos.base_dtos import BaseFilterParams, BaseReadDTO, BaseWriteDTO
 from src.enums.permission_enum import PermissionEnum
 
 
@@ -39,3 +42,9 @@ class RoleRead(RoleReadSimple):
 
 class AssignRoleRequest(BaseWriteDTO):
     role_ids: list[int]
+
+
+class RoleFilterParams(BaseFilterParams):
+    name: Annotated[str | None, Query(description='Partial match on role name')] = None
+
+    order_by: Annotated[Literal['id', 'name', 'created_at'] | None, Query()] = 'id'

@@ -3,6 +3,7 @@ from typing import Generic, Sequence, TypeVar
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.dtos.base_dtos import BaseFilterParams
 from src.entities.base_entities import SoftDeleteEntityMixin
 
 T = TypeVar('T')
@@ -17,8 +18,8 @@ class BaseRepository(Generic[T]):
             cls._model = model
 
     def __init__(self, session: AsyncSession):
-        if not hasattr(self, "model") or getattr(self, "model", None) is None:
-            self.model = getattr(self, "_model", None)
+        if not hasattr(self, 'model') or getattr(self, 'model', None) is None:
+            self.model = getattr(self, '_model', None)
         self.session = session
 
     @property
@@ -47,10 +48,28 @@ class BaseRepository(Generic[T]):
         )
         return items, total
 
+    def _apply_ordering(self, query, filters: BaseFilterParams | None):
+        if filters and filters.order_by:
+            column = getattr(self.model, filters.order_by)
+            if filters.order_dir == 'desc':
+                column = column.desc()
+            else:
+                column = column.asc()
+            query = query.order_by(column)
+        return query
+
+    def _apply_filters(self, query, filters: BaseFilterParams | None):
+        """Hook to apply specific filters in child repositories."""
+        return query
+
     async def find_paginated(
-        self, page: int = 1, per_page: int = 20
+        self, page: int = 1, per_page: int = 20, filters: BaseFilterParams | None = None
     ) -> tuple[Sequence[T], int]:
-        return await self._paginate_query(self._base_query(), page, per_page)
+        query = self._base_query()
+        if filters:
+            query = self._apply_filters(query, filters)
+            query = self._apply_ordering(query, filters)
+        return await self._paginate_query(query, page, per_page)
 
     async def find_one_by(self, **kwargs) -> T | None:
         query = self._base_query()

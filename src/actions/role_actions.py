@@ -1,7 +1,6 @@
 from sqlalchemy.orm import selectinload
 
 from src.actions.base_actions import BaseActions
-from src.dtos.pagination_dtos import PaginatedResponse
 from src.dtos.role_dtos import RoleCreate, RoleUpdate
 from src.entities.role_entity import RoleEntity
 from src.entities.user_entity import UserEntity
@@ -22,11 +21,6 @@ class RoleActions(BaseActions[RoleEntity]):
         self.repository = repository
         self.permission_repo = permission_repo
         self.user_repo = user_repo
-
-    async def list_paginated(
-        self, page: int = 1, per_page: int = 20
-    ) -> PaginatedResponse[RoleEntity]:
-        return await super().list_paginated(page, per_page)
 
     async def find(self, id: int) -> RoleEntity:
         return await self._get_or_raise(
@@ -94,7 +88,9 @@ class RoleActions(BaseActions[RoleEntity]):
             )
             return res.unique().scalar_one_or_none()
 
-        user = await self._get_or_raise(finder=find_user_with_roles, message='User not found')
+        user = await self._get_or_raise(
+            finder=find_user_with_roles, message='User not found'
+        )
 
         roles = []
         for rid in role_ids:

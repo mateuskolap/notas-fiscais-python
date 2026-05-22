@@ -1,7 +1,10 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
+from typing import Annotated, Literal
 
-from src.dtos.base_dtos import BaseReadDTO
+from fastapi import Query
+
+from src.dtos.base_dtos import BaseFilterParams, BaseReadDTO
 
 
 class EstablishmentResponse(BaseReadDTO):
@@ -38,3 +41,38 @@ class InvoiceResponse(BaseReadDTO):
 
 class InvoiceDetailResponse(InvoiceResponse):
     user: InvoiceUserResponse
+
+
+class InvoiceFilterParams(BaseFilterParams):
+    establishment_id: Annotated[
+        int | None, Query(description='Filter by establishment ID')
+    ] = None
+    establishment_name: Annotated[
+        str | None, Query(description='Partial match on establishment name')
+    ] = None
+    min_value: Annotated[
+        Decimal | None, Query(ge=0, description='Minimum total value')
+    ] = None
+    max_value: Annotated[
+        Decimal | None, Query(ge=0, description='Maximum total value')
+    ] = None
+    issued_from: Annotated[
+        date | None, Query(description='Issued on or after this date')
+    ] = None
+    issued_until: Annotated[
+        date | None, Query(description='Issued on or before this date')
+    ] = None
+
+    order_by: Annotated[
+        Literal['id', 'issued_at', 'total_value', 'created_at'] | None, Query()
+    ] = 'issued_at'
+
+
+class InvoiceItemFilterParams(BaseFilterParams):
+    description: Annotated[
+        str | None, Query(description='Partial match on item description')
+    ] = None
+
+    order_by: Annotated[
+        Literal['id', 'description', 'quantity', 'total_price'] | None, Query()
+    ] = 'id'

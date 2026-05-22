@@ -1,5 +1,6 @@
 from src.actions.base_actions import BaseActions
 from src.actions.nfce_actions import NfceActions
+from src.dtos.invoice_dtos import InvoiceFilterParams, InvoiceItemFilterParams
 from src.dtos.pagination_dtos import PaginatedResponse
 from src.entities.establishment_entity import EstablishmentEntity
 from src.entities.invoice_entity import InvoiceEntity
@@ -27,10 +28,18 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
         self.invoice_item_repo = invoice_item_repo
 
     async def list_paginated_by_user(
-        self, user_id: int, page: int = 1, per_page: int = 20
+        self,
+        user_id: int,
+        page: int = 1,
+        per_page: int = 20,
+        filters: InvoiceFilterParams | None = None,
     ) -> PaginatedResponse[InvoiceEntity]:
         return await self._paginated_query(
-            self.invoice_repo.find_paginated_by_user, page, per_page, user_id=user_id
+            self.invoice_repo.find_paginated_by_user,
+            page,
+            per_page,
+            user_id=user_id,
+            filters=filters,
         )
 
     async def find_with_user_scoped(self, id: int, user_id: int) -> InvoiceEntity:
@@ -39,13 +48,22 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
         )
 
     async def list_items_paginated(
-        self, invoice_id: int, user_id: int, page: int = 1, per_page: int = 20
+        self,
+        invoice_id: int,
+        user_id: int,
+        page: int = 1,
+        per_page: int = 20,
+        filters: InvoiceItemFilterParams | None = None,
     ) -> PaginatedResponse[InvoiceItemEntity]:
         await self._get_or_raise(
             finder=lambda: self.invoice_repo.find_by_id_and_user(invoice_id, user_id)
         )
         return await self._paginated_query(
-            self.invoice_item_repo.find_paginated_by_invoice, page, per_page, invoice_id=invoice_id
+            self.invoice_item_repo.find_paginated_by_invoice,
+            page,
+            per_page,
+            invoice_id=invoice_id,
+            filters=filters,
         )
 
     async def extract_and_persist(self, url: str, user: UserEntity) -> InvoiceEntity:

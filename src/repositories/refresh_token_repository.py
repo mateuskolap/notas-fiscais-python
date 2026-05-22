@@ -4,8 +4,9 @@ from src.entities.refresh_token_entity import RefreshTokenEntity
 from src.repositories.base_repository import BaseRepository
 
 
-class RefreshTokenRepository(BaseRepository[RefreshTokenEntity], model=RefreshTokenEntity):
-
+class RefreshTokenRepository(
+    BaseRepository[RefreshTokenEntity], model=RefreshTokenEntity
+):
     async def find_valid_token(self, token: str) -> RefreshTokenEntity | None:
         now = datetime.now(timezone.utc)
         result = await self.session.execute(

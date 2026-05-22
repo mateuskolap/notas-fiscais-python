@@ -30,13 +30,14 @@ Session = Annotated[AsyncSession, Depends(get_session)]
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/auth/login')
 
 
-T = TypeVar("T")
+T = TypeVar('T')
 
 
 def _repository_dependency(repo_class: Type[T]):
     async def _get_repository(session: Session) -> T:
         return repo_class(session)
-    _get_repository.__name__ = f"get_{repo_class.__name__.lower()}"
+
+    _get_repository.__name__ = f'get_{repo_class.__name__.lower()}'
     return _get_repository
 
 
@@ -49,7 +50,9 @@ async def get_user_actions(repository: UserRepo) -> UserActions:
 
 UserAct = Annotated[UserActions, Depends(get_user_actions)]
 
-RefreshTokenRepo = Annotated[RefreshTokenRepository, Depends(_repository_dependency(RefreshTokenRepository))]
+RefreshTokenRepo = Annotated[
+    RefreshTokenRepository, Depends(_repository_dependency(RefreshTokenRepository))
+]
 
 
 async def get_auth_actions(
@@ -68,11 +71,17 @@ async def get_nfce_actions() -> NfceActions:
 NfceAct = Annotated[NfceActions, Depends(get_nfce_actions)]
 
 
-EstablishmentRepo = Annotated[EstablishmentRepository, Depends(_repository_dependency(EstablishmentRepository))]
+EstablishmentRepo = Annotated[
+    EstablishmentRepository, Depends(_repository_dependency(EstablishmentRepository))
+]
 
-InvoiceRepo = Annotated[InvoiceRepository, Depends(_repository_dependency(InvoiceRepository))]
+InvoiceRepo = Annotated[
+    InvoiceRepository, Depends(_repository_dependency(InvoiceRepository))
+]
 
-InvoiceItemRepo = Annotated[InvoiceItemRepository, Depends(_repository_dependency(InvoiceItemRepository))]
+InvoiceItemRepo = Annotated[
+    InvoiceItemRepository, Depends(_repository_dependency(InvoiceItemRepository))
+]
 
 
 async def get_invoice_actions(
@@ -105,7 +114,9 @@ CurrentUser = Annotated[UserEntity, Depends(get_current_user)]
 
 
 RoleRepo = Annotated[RoleRepository, Depends(_repository_dependency(RoleRepository))]
-PermissionRepo = Annotated[PermissionRepository, Depends(_repository_dependency(PermissionRepository))]
+PermissionRepo = Annotated[
+    PermissionRepository, Depends(_repository_dependency(PermissionRepository))
+]
 
 
 async def get_role_actions(
@@ -128,4 +139,5 @@ def require_permission(permission: PermissionEnum):
         if permission.value not in user_perms:
             raise ForbiddenException('Permission denied')
         return current_user
+
     return dependency

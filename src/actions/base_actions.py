@@ -24,7 +24,7 @@ class BaseActions(Generic[T]):
         elif id is not None:
             entity = await self.repository.find_by_id(id)
         else:
-            raise ValueError("Either id or finder must be provided")
+            raise ValueError('Either id or finder must be provided')
 
         if not entity:
             raise NotFoundException(message or f'{self._entity_name} not found')
@@ -43,10 +43,10 @@ class BaseActions(Generic[T]):
         )
 
     async def list_paginated(
-        self, page: int = 1, per_page: int = 20
+        self, page: int = 1, per_page: int = 20, filters=None
     ) -> PaginatedResponse[T]:
         return await self._paginated_query(
-            self.repository.find_paginated, page, per_page
+            self.repository.find_paginated, page, per_page, filters=filters
         )
 
     async def find(self, id: int) -> T:

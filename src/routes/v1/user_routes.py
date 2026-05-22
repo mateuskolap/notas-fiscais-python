@@ -6,7 +6,13 @@ from fastapi import APIRouter, Depends
 from src.dependencies import CurrentUser, UserAct
 from src.dtos.pagination_dtos import PaginatedResponse, PaginationParams
 from src.dtos.response_dtos import ErrorResponse
-from src.dtos.user_dtos import UserChangePassword, UserCreate, UserRead, UserUpdate
+from src.dtos.user_dtos import (
+    UserChangePassword,
+    UserCreate,
+    UserFilterParams,
+    UserRead,
+    UserUpdate,
+)
 
 router = APIRouter(prefix='/users', tags=['users'])
 
@@ -20,8 +26,9 @@ async def list_users(
     actions: UserAct,
     current_user: CurrentUser,
     pagination: Annotated[PaginationParams, Depends()],
+    filters: Annotated[UserFilterParams, Depends()],
 ):
-    return await actions.list_paginated(pagination.page, pagination.per_page)
+    return await actions.list_paginated(pagination.page, pagination.per_page, filters)
 
 
 @router.get(

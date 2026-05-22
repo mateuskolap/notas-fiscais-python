@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, Integer, event, func
+from sqlalchemy.orm import Mapped, Session, mapped_column, with_loader_criteria
 
 from src.repositories.database import table_registry
 
@@ -36,3 +36,16 @@ class SoftDeleteEntityMixin(EntityMixin):
     @property
     def is_deleted(self):
         return self.deleted_at is not None
+
+
+@event.listens_for(Session, 'do_orm_execute')
+def _add_filtering_criteria(execute_state):
+    if execute_state.is_select and not execute_state.is_column_load:
+        if not execute_state.execution_options.get('include_deleted', False):
+            execute_state.statement = execute_state.statement.options(
+                with_loader_criteria(
+                    SoftDeleteEntityMixin,
+                    lambda cls: cls.deleted_at.is_(None),
+                    include_aliases=True,
+                )
+            )

@@ -102,4 +102,5 @@ async def run_seeders() -> None:
 
 if __name__ == '__main__':
     import asyncio
+
     asyncio.run(run_seeders())
