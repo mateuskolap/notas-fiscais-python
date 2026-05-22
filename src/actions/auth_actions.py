@@ -37,6 +37,8 @@ class AuthActions:
             await self.token_repo.revoke_token(token)
 
     async def _generate_tokens_for_user(self, user_id: int) -> TokenResponse:
+        await self.token_repo.revoke_expired_user_tokens(user_id)
+
         access_token = create_access_token(user_id, settings)
         refresh_token_str = generate_refresh_token()
 

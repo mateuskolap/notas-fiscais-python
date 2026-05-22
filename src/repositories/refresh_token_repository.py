@@ -37,3 +37,20 @@ class RefreshTokenRepository(BaseRepository[RefreshTokenEntity], model=RefreshTo
 
         if active_tokens:
             await self.session.commit()
+
+    async def revoke_expired_user_tokens(self, user_id: int) -> None:
+        now = datetime.now(timezone.utc)
+        result = await self.session.execute(
+            self
+            ._base_query()
+            .where(RefreshTokenEntity.user_id == user_id)
+            .where(RefreshTokenEntity.revoked_at.is_(None))
+            .where(RefreshTokenEntity.expires_at <= now)
+        )
+        expired_tokens = result.scalars().all()
+
+        for token in expired_tokens:
+            token.revoked_at = now
+
+        if expired_tokens:
+            await self.session.commit()
