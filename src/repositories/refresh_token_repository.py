@@ -1,7 +1,5 @@
 from datetime import datetime, timezone
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.entities.refresh_token_entity import RefreshTokenEntity
 from src.repositories.base_repository import BaseRepository
 

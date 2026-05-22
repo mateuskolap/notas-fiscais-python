@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr
 
 from src.dtos.base_dtos import BaseReadDTO, BaseWriteDTO
+from src.dtos.role_dtos import PermissionRead, RoleReadSimple
 from src.dtos.validators import PasswordStr
 
 
@@ -25,10 +26,18 @@ class User(UserBase):
     pass
 
 
-class UserRead(User, BaseReadDTO):
+class UserReadBase(User, BaseReadDTO):
     id: int
     created_at: datetime
     updated_at: datetime
+
+
+class UserRead(UserReadBase):
+    roles: list[RoleReadSimple]
+
+
+class UserMeRead(UserReadBase):
+    permissions: list[PermissionRead]
 
 
 class UserChangePassword(BaseWriteDTO):

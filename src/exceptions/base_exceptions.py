@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+
 class AppException(Exception):
     """Base exception for application errors."""
     status_code: HTTPStatus = HTTPStatus.BAD_REQUEST

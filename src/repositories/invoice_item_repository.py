@@ -1,8 +1,5 @@
 from typing import Sequence
 
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.entities.invoice_item_entity import InvoiceItemEntity
 from src.repositories.base_repository import BaseRepository
 

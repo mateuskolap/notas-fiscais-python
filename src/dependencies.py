@@ -7,14 +7,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.actions.auth_actions import AuthActions
 from src.actions.invoice_actions import InvoiceActions
 from src.actions.nfce_actions import NfceActions
+from src.actions.role_actions import RoleActions
 from src.actions.user_actions import UserActions
 from src.entities.user_entity import UserEntity
-from src.exceptions.base_exceptions import UnauthorizedException
+from src.enums.permission_enum import PermissionEnum
+from src.exceptions.base_exceptions import ForbiddenException, UnauthorizedException
 from src.repositories.database import get_session
 from src.repositories.establishment_repository import EstablishmentRepository
 from src.repositories.invoice_item_repository import InvoiceItemRepository
 from src.repositories.invoice_repository import InvoiceRepository
+from src.repositories.permission_repository import PermissionRepository
 from src.repositories.refresh_token_repository import RefreshTokenRepository
+from src.repositories.role_repository import RoleRepository
 from src.repositories.user_repository import UserRepository
 from src.services.nfce.extractor import NfceDataExtractor
 from src.services.nfce.fetcher import NfcePageFetcher
@@ -28,16 +32,20 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/auth/login')
 
 T = TypeVar("T")
 
+
 def _repository_dependency(repo_class: Type[T]):
     async def _get_repository(session: Session) -> T:
         return repo_class(session)
     _get_repository.__name__ = f"get_{repo_class.__name__.lower()}"
     return _get_repository
 
+
 UserRepo = Annotated[UserRepository, Depends(_repository_dependency(UserRepository))]
+
 
 async def get_user_actions(repository: UserRepo) -> UserActions:
     return UserActions(repository)
+
 
 UserAct = Annotated[UserActions, Depends(get_user_actions)]
 
@@ -94,3 +102,30 @@ async def get_current_user(
 
 
 CurrentUser = Annotated[UserEntity, Depends(get_current_user)]
+
+
+RoleRepo = Annotated[RoleRepository, Depends(_repository_dependency(RoleRepository))]
+PermissionRepo = Annotated[PermissionRepository, Depends(_repository_dependency(PermissionRepository))]
+
+
+async def get_role_actions(
+    repository: RoleRepo,
+    permission_repo: PermissionRepo,
+    user_repo: UserRepo,
+) -> RoleActions:
+    return RoleActions(repository, permission_repo, user_repo)
+
+
+RoleAct = Annotated[RoleActions, Depends(get_role_actions)]
+
+
+def require_permission(permission: PermissionEnum):
+    async def dependency(
+        current_user: CurrentUser,
+        role_actions: RoleAct,
+    ) -> UserEntity:
+        user_perms = await role_actions.get_user_permissions(current_user.id)
+        if permission.value not in user_perms:
+            raise ForbiddenException('Permission denied')
+        return current_user
+    return dependency

@@ -12,7 +12,10 @@ WORKDIR /app
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-COPY ./pyproject.toml ./uv.lock ./.python-version /app/
+COPY ./pyproject.toml ./uv.lock ./.python-version ./entrypoint.sh /app/
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+
 
 FROM base AS prod
 

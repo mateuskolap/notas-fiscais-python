@@ -1,4 +1,3 @@
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.entities.establishment_entity import EstablishmentEntity
 from src.repositories.base_repository import BaseRepository

@@ -1,7 +1,5 @@
 from typing import Sequence
 
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.entities.invoice_entity import InvoiceEntity
@@ -75,6 +73,7 @@ class InvoiceRepository(BaseRepository[InvoiceEntity], model=InvoiceEntity):
             .where_user(user_id)
             .first()
         )
+
 
 class InvoiceQueryBuilder:
     def __init__(self, repo: InvoiceRepository):

@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from src.dependencies import AuthAct, CurrentUser
 from src.dtos.auth_dtos import RefreshTokenRequest, TokenResponse
-from src.dtos.user_dtos import UserRead
+from src.dtos.user_dtos import UserMeRead
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
@@ -29,6 +29,6 @@ async def logout(data: RefreshTokenRequest, actions: AuthAct):
     await actions.logout(data.refresh_token)
 
 
-@router.get('/me', response_model=UserRead)
+@router.get('/me', response_model=UserMeRead)
 async def me(current_user: CurrentUser):
     return current_user
