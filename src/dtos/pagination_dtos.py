@@ -1,8 +1,7 @@
 import math
-from typing import Annotated, Generic, TypeVar
+from typing import Generic, TypeVar
 
-from fastapi import Query
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 T = TypeVar('T')
 
@@ -10,8 +9,8 @@ T = TypeVar('T')
 class PaginationParams(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
-    page: Annotated[int, Query(ge=1, description='Page number')] = 1
-    per_page: Annotated[int, Query(ge=1, le=100, description='Items per page')] = 20
+    page: int = Field(default=1, ge=1)
+    per_page: int = Field(default=20, ge=1, le=100)
 
 
 class PaginatedResponse(BaseModel, Generic[T]):

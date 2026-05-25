@@ -1,6 +1,5 @@
-from typing import Annotated, Literal
+from typing import Literal
 
-from fastapi import Query
 from pydantic import BaseModel, ConfigDict
 
 
@@ -15,7 +14,5 @@ class BaseWriteDTO(BaseModel):
 class BaseFilterParams(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
-    order_by: Annotated[str | None, Query(description='Field to order by')] = None
-    order_dir: Annotated[
-        Literal['asc', 'desc'], Query(description='Order direction')
-    ] = 'desc'
+    order_by: str | None = None
+    order_dir: Literal['asc', 'desc'] = 'desc'

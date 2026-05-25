@@ -119,9 +119,7 @@ class PrNfceExtractor(TemplateNfceExtractor):
             raise NfceScrapingException('Invalid emission date format.')
 
     @staticmethod
-    def _extract_value_by_label(
-        soup: BeautifulSoup, label_text: str
-    ) -> str | None:
+    def _extract_value_by_label(soup: BeautifulSoup, label_text: str) -> str | None:
         rows = soup.select('#totalNota #linhaTotal')
         for row in rows:
             label = clean_text(row.find('label')) or ''
@@ -170,9 +168,7 @@ class PrNfceExtractor(TemplateNfceExtractor):
         unit = normalize(unit_match.group(1) if unit_match else '')
 
         unit_price_text = clean_text(product.find(class_='RvlUnit')) or ''
-        unit_price_match = re.search(
-            r'Vl\.\s*Unit\.\s*:\s*([\d,.]+)', unit_price_text
-        )
+        unit_price_match = re.search(r'Vl\.\s*Unit\.\s*:\s*([\d,.]+)', unit_price_text)
         unit_price = parse_brazilian_decimal(
             unit_price_match.group(1) if unit_price_match else '0'
         )

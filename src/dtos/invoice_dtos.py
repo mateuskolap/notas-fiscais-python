@@ -1,8 +1,8 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Annotated, Literal
+from typing import Literal
 
-from fastapi import Query
+from pydantic import Field
 
 from src.dtos.base_dtos import BaseFilterParams, BaseReadDTO
 
@@ -44,35 +44,17 @@ class InvoiceDetailResponse(InvoiceResponse):
 
 
 class InvoiceFilterParams(BaseFilterParams):
-    establishment_id: Annotated[
-        int | None, Query(description='Filter by establishment ID')
-    ] = None
-    establishment_name: Annotated[
-        str | None, Query(description='Partial match on establishment name')
-    ] = None
-    min_value: Annotated[
-        Decimal | None, Query(ge=0, description='Minimum total value')
-    ] = None
-    max_value: Annotated[
-        Decimal | None, Query(ge=0, description='Maximum total value')
-    ] = None
-    issued_from: Annotated[
-        date | None, Query(description='Issued on or after this date')
-    ] = None
-    issued_until: Annotated[
-        date | None, Query(description='Issued on or before this date')
-    ] = None
-
-    order_by: Annotated[
-        Literal['id', 'issued_at', 'total_value', 'created_at'] | None, Query()
-    ] = 'issued_at'
+    establishment_id: int | None = None
+    establishment_name: str | None = None
+    min_value: Decimal | None = Field(default=None, ge=0)
+    max_value: Decimal | None = Field(default=None, ge=0)
+    issued_from: date | None = None
+    issued_until: date | None = None
+    order_by: Literal['id', 'issued_at', 'total_value', 'created_at'] | None = (
+        'issued_at'
+    )
 
 
 class InvoiceItemFilterParams(BaseFilterParams):
-    description: Annotated[
-        str | None, Query(description='Partial match on item description')
-    ] = None
-
-    order_by: Annotated[
-        Literal['id', 'description', 'quantity', 'total_price'] | None, Query()
-    ] = 'id'
+    description: str | None = None
+    order_by: Literal['id', 'description', 'quantity', 'total_price'] | None = 'id'

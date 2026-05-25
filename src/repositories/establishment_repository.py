@@ -18,9 +18,15 @@ class EstablishmentRepository(
             query = query.where(EstablishmentEntity.name.ilike(f'%{filters.name}%'))
 
         if filters.business_tin:
-            query = query.where(EstablishmentEntity.business_tin.ilike(f'%{filters.business_tin}%'))
+            query = query.where(
+                EstablishmentEntity.business_tin.ilike(f'%{filters.business_tin}%')
+            )
 
         if filters.related_only and filters.user_id is not None:
-            query = query.where(EstablishmentEntity.invoices.any(InvoiceEntity.user_id == filters.user_id))
+            query = query.where(
+                EstablishmentEntity.invoices.any(
+                    InvoiceEntity.user_id == filters.user_id
+                )
+            )
 
         return query

@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path
 
 from src.dependencies import CurrentUser, InvoiceAct
 from src.dtos.invoice_dtos import (
@@ -25,6 +25,10 @@ router = APIRouter(
     '',
     status_code=HTTPStatus.OK,
     response_model=PaginatedResponse[InvoiceResponse],
+    summary='List all invoices',
+    responses={
+        401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
+    },
 )
 async def list_invoices(
     actions: InvoiceAct,
@@ -32,6 +36,12 @@ async def list_invoices(
     pagination: Annotated[PaginationParams, Depends()],
     filters: Annotated[InvoiceFilterParams, Depends()],
 ):
+    """
+    Retrieve a paginated list of all invoices scoped/belonging to the current user.
+
+    Supports filtering by establishment ID, establishment name, total value limits,
+    issued date ranges, and custom sorting.
+    """
     return await actions.list_paginated_by_user(
         current_user.id, pagination.page, pagination.per_page, filters
     )
@@ -41,13 +51,22 @@ async def list_invoices(
     '/{invoice_id}',
     status_code=HTTPStatus.OK,
     response_model=InvoiceDetailResponse,
-    responses={404: {'model': ErrorResponse}},
+    summary='Get invoice by ID',
+    responses={
+        401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
+        404: {'model': ErrorResponse, 'description': 'Invoice not found'},
+    },
 )
 async def find_invoice(
-    invoice_id: int,
+    invoice_id: Annotated[
+        int, Path(description='The unique identifier of the invoice')
+    ],
     actions: InvoiceAct,
     current_user: CurrentUser,
 ):
+    """
+    Retrieve detailed information for a single invoice by its ID, scoped to the current user.
+    """
     return await actions.find_with_user_scoped(invoice_id, current_user.id)
 
 
@@ -55,15 +74,26 @@ async def find_invoice(
     '/{invoice_id}/items',
     status_code=HTTPStatus.OK,
     response_model=PaginatedResponse[InvoiceItemResponse],
-    responses={404: {'model': ErrorResponse}},
+    summary='List items of an invoice',
+    responses={
+        401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
+        404: {'model': ErrorResponse, 'description': 'Invoice not found'},
+    },
 )
 async def list_invoice_items(
-    invoice_id: int,
+    invoice_id: Annotated[
+        int, Path(description='The unique identifier of the invoice')
+    ],
     actions: InvoiceAct,
     current_user: CurrentUser,
     pagination: Annotated[PaginationParams, Depends()],
     filters: Annotated[InvoiceItemFilterParams, Depends()],
 ):
+    """
+    Retrieve a paginated list of items associated with a specific invoice.
+
+    Supports partial match filtering on the item description.
+    """
     return await actions.list_items_paginated(
         invoice_id, current_user.id, pagination.page, pagination.per_page, filters
     )
@@ -73,10 +103,21 @@ async def list_invoice_items(
     '/extract',
     status_code=HTTPStatus.CREATED,
     response_model=InvoiceResponse,
+    summary='Extract invoice from NFC-e URL',
     responses={
-        400: {'model': ErrorResponse},
-        409: {'model': ErrorResponse},
-        502: {'model': ErrorResponse},
+        400: {
+            'model': ErrorResponse,
+            'description': 'Invalid NFC-e URL or domain not allowed',
+        },
+        401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
+        409: {
+            'model': ErrorResponse,
+            'description': 'Invoice has already been registered',
+        },
+        502: {
+            'model': ErrorResponse,
+            'description': 'State portal returned an error during extraction',
+        },
     },
 )
 async def extract_invoice(
@@ -84,4 +125,8 @@ async def extract_invoice(
     actions: InvoiceAct,
     current_user: CurrentUser,
 ):
+    """
+    Extract invoice and item details from a valid HTTPS NFC-e portal URL (e.g. Paraná's state portal),
+    and persist it under the authenticated user.
+    """
     return await actions.extract_and_persist(data.url, current_user)

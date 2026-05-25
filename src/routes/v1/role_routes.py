@@ -1,7 +1,7 @@
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path
 
 from src.dependencies import RoleAct, require_permission
 from src.dtos.pagination_dtos import PaginatedResponse, PaginationParams
@@ -24,10 +24,18 @@ router = APIRouter(prefix='/roles', tags=['roles'])
     '/permissions',
     status_code=HTTPStatus.OK,
     response_model=list[SystemPermissionRead],
+    summary='List all system permissions',
+    responses={
+        401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
+        403: {'model': ErrorResponse, 'description': 'Permission denied'},
+    },
 )
 async def list_permissions(
     user: Annotated[UserEntity, Depends(require_permission(PermissionEnum.ROLES_READ))],
 ):
+    """
+    Retrieve all available system permissions defined in the application's permission enum.
+    """
     return [{'name': p.value} for p in PermissionEnum]
 
 
@@ -35,6 +43,11 @@ async def list_permissions(
     '',
     status_code=HTTPStatus.OK,
     response_model=PaginatedResponse[RoleReadSimple],
+    summary='List all roles',
+    responses={
+        401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
+        403: {'model': ErrorResponse, 'description': 'Permission denied'},
+    },
 )
 async def list_roles(
     user: Annotated[UserEntity, Depends(require_permission(PermissionEnum.ROLES_READ))],
@@ -42,6 +55,11 @@ async def list_roles(
     pagination: Annotated[PaginationParams, Depends()],
     filters: Annotated[RoleFilterParams, Depends()],
 ):
+    """
+    Retrieve a paginated list of defined user roles.
+
+    Supports filtering by name and custom sorting.
+    """
     return await actions.list_paginated(pagination.page, pagination.per_page, filters)
 
 
@@ -49,13 +67,21 @@ async def list_roles(
     '/{role_id}',
     status_code=HTTPStatus.OK,
     response_model=RoleRead,
-    responses={404: {'model': ErrorResponse}},
+    summary='Get role by ID',
+    responses={
+        401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
+        403: {'model': ErrorResponse, 'description': 'Permission denied'},
+        404: {'model': ErrorResponse, 'description': 'Role not found'},
+    },
 )
 async def find_role(
-    role_id: int,
+    role_id: Annotated[int, Path(description='The unique identifier of the role')],
     user: Annotated[UserEntity, Depends(require_permission(PermissionEnum.ROLES_READ))],
     actions: RoleAct,
 ):
+    """
+    Retrieve details of a specific role by its ID, including all assigned permissions.
+    """
     return await actions.find(role_id)
 
 
@@ -63,9 +89,13 @@ async def find_role(
     '',
     status_code=HTTPStatus.CREATED,
     response_model=RoleReadSimple,
+    summary='Create a new role',
     responses={
-        409: {'model': ErrorResponse},
-        404: {'model': ErrorResponse},
+        400: {'model': ErrorResponse, 'description': 'Validation or bad request'},
+        401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
+        403: {'model': ErrorResponse, 'description': 'Permission denied'},
+        404: {'model': ErrorResponse, 'description': 'Permissions not found'},
+        409: {'model': ErrorResponse, 'description': 'Role name already exists'},
     },
 )
 async def create_role(
@@ -75,6 +105,9 @@ async def create_role(
     ],
     actions: RoleAct,
 ):
+    """
+    Create a new custom role with a specific list of system permissions.
+    """
     return await actions.create(data)
 
 
@@ -82,32 +115,47 @@ async def create_role(
     '/{role_id}',
     status_code=HTTPStatus.OK,
     response_model=RoleReadSimple,
+    summary='Update role by ID',
     responses={
-        404: {'model': ErrorResponse},
-        409: {'model': ErrorResponse},
+        400: {'model': ErrorResponse, 'description': 'Validation or bad request'},
+        401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
+        403: {'model': ErrorResponse, 'description': 'Permission denied'},
+        404: {'model': ErrorResponse, 'description': 'Role or permissions not found'},
+        409: {'model': ErrorResponse, 'description': 'Role name already taken'},
     },
 )
 async def update_role(
-    role_id: int,
+    role_id: Annotated[int, Path(description='The unique identifier of the role')],
     data: RoleUpdate,
     user: Annotated[
         UserEntity, Depends(require_permission(PermissionEnum.ROLES_UPDATE))
     ],
     actions: RoleAct,
 ):
+    """
+    Update details (name, description, list of permissions) of an existing role by its ID.
+    """
     return await actions.update(role_id, data)
 
 
 @router.delete(
     '/{role_id}',
     status_code=HTTPStatus.NO_CONTENT,
-    responses={404: {'model': ErrorResponse}},
+    summary='Delete role by ID',
+    responses={
+        401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
+        403: {'model': ErrorResponse, 'description': 'Permission denied'},
+        404: {'model': ErrorResponse, 'description': 'Role not found'},
+    },
 )
 async def delete_role(
-    role_id: int,
+    role_id: Annotated[int, Path(description='The unique identifier of the role')],
     user: Annotated[
         UserEntity, Depends(require_permission(PermissionEnum.ROLES_DELETE))
     ],
     actions: RoleAct,
 ):
+    """
+    Delete a user role by its ID.
+    """
     await actions.delete(role_id)

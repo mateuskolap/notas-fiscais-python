@@ -23,12 +23,17 @@ class EstablishmentActions(BaseActions[EstablishmentEntity]):
 
         return await self.repository.create(establishment)
 
-    async def update(self, establishment_id: int, data: EstablishmentUpdate) -> EstablishmentEntity:
+    async def update(
+        self, establishment_id: int, data: EstablishmentUpdate
+    ) -> EstablishmentEntity:
         establishment = await self._get_or_raise(establishment_id)
 
         update_data = data.model_dump(exclude_unset=True)
 
-        if 'business_tin' in update_data and update_data['business_tin'] != establishment.business_tin:
+        if (
+            'business_tin' in update_data
+            and update_data['business_tin'] != establishment.business_tin
+        ):
             existing = await self.repository.find_by_tin(update_data['business_tin'])
             if existing:
                 raise ConflictException('CNPJ already registered')

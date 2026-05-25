@@ -1,7 +1,6 @@
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Literal
 
-from fastapi import Query
 from pydantic import BaseModel, EmailStr
 
 from src.dtos.base_dtos import BaseFilterParams, BaseReadDTO, BaseWriteDTO
@@ -49,11 +48,6 @@ class UserChangePassword(BaseWriteDTO):
 
 
 class UserFilterParams(BaseFilterParams):
-    name: Annotated[str | None, Query(description='Partial match on user name')] = None
-    email: Annotated[str | None, Query(description='Partial match on user email')] = (
-        None
-    )
-
-    order_by: Annotated[
-        Literal['id', 'name', 'email', 'created_at'] | None, Query()
-    ] = 'id'
+    name: str | None = None
+    email: str | None = None
+    order_by: Literal['id', 'name', 'email', 'created_at'] | None = 'id'
