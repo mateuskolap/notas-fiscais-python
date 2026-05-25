@@ -5,6 +5,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.actions.auth_actions import AuthActions
+from src.actions.establishment_actions import EstablishmentActions
 from src.actions.invoice_actions import InvoiceActions
 from src.actions.nfce_actions import NfceActions
 from src.actions.role_actions import RoleActions
@@ -120,9 +121,7 @@ async def get_current_user(
 CurrentUser = Annotated[UserEntity, Depends(get_current_user)]
 
 
-RoleRepo = Annotated[
-    RoleRepository, Depends(_repository_dependency(RoleRepository))
-]
+RoleRepo = Annotated[RoleRepository, Depends(_repository_dependency(RoleRepository))]
 PermissionRepo = Annotated[
     PermissionRepository, Depends(_repository_dependency(PermissionRepository))
 ]
@@ -150,3 +149,12 @@ def require_permission(permission: PermissionEnum):
         return current_user
 
     return dependency
+
+
+async def get_establishment_actions(
+    repository: EstablishmentRepo,
+) -> EstablishmentActions:
+    return EstablishmentActions(repository)
+
+
+EstablishmentAct = Annotated[EstablishmentActions, Depends(get_establishment_actions)]

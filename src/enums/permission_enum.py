@@ -17,3 +17,8 @@ class PermissionEnum(StrEnum):
     ROLES_UPDATE = 'roles_update'
     ROLES_DELETE = 'roles_delete'
     ROLES_ASSIGN = 'roles_assign'
+
+    ESTABLISHMENTS_READ = 'establishments_read'
+    ESTABLISHMENTS_CREATE = 'establishments_create'
+    ESTABLISHMENTS_UPDATE = 'establishments_update'
+    ESTABLISHMENTS_DELETE = 'establishments_delete'
