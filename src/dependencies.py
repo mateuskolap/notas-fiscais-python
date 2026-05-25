@@ -20,7 +20,7 @@ from src.repositories.permission_repository import PermissionRepository
 from src.repositories.refresh_token_repository import RefreshTokenRepository
 from src.repositories.role_repository import RoleRepository
 from src.repositories.user_repository import UserRepository
-from src.services.nfce.extractor import NfceDataExtractor
+from src.services.nfce.extractor import NfceExtractorFactory
 from src.services.nfce.fetcher import NfcePageFetcher
 from src.services.token_service import decode_access_token
 from src.settings import settings
@@ -65,20 +65,27 @@ AuthAct = Annotated[AuthActions, Depends(get_auth_actions)]
 
 
 async def get_nfce_actions() -> NfceActions:
-    return NfceActions(NfcePageFetcher(), NfceDataExtractor())
+    return NfceActions(NfcePageFetcher(), NfceExtractorFactory())
 
 
 NfceAct = Annotated[NfceActions, Depends(get_nfce_actions)]
 
 
 EstablishmentRepo = Annotated[
-    EstablishmentRepository, Depends(_repository_dependency(EstablishmentRepository))
+    EstablishmentRepository,
+    Depends(_repository_dependency(EstablishmentRepository)),
 ]
 
 InvoiceRepo = Annotated[
     InvoiceRepository, Depends(_repository_dependency(InvoiceRepository))
 ]
+InvoiceRepo = Annotated[
+    InvoiceRepository, Depends(_repository_dependency(InvoiceRepository))
+]
 
+InvoiceItemRepo = Annotated[
+    InvoiceItemRepository, Depends(_repository_dependency(InvoiceItemRepository))
+]
 InvoiceItemRepo = Annotated[
     InvoiceItemRepository, Depends(_repository_dependency(InvoiceItemRepository))
 ]
@@ -113,7 +120,9 @@ async def get_current_user(
 CurrentUser = Annotated[UserEntity, Depends(get_current_user)]
 
 
-RoleRepo = Annotated[RoleRepository, Depends(_repository_dependency(RoleRepository))]
+RoleRepo = Annotated[
+    RoleRepository, Depends(_repository_dependency(RoleRepository))
+]
 PermissionRepo = Annotated[
     PermissionRepository, Depends(_repository_dependency(PermissionRepository))
 ]
