@@ -114,7 +114,7 @@ async def get_current_user(
     user_id = int(payload['sub'])
     user = await repository.find_by_id(user_id)
     if not user:
-        raise UnauthorizedException('User not found')
+        raise UnauthorizedException('User not found', details={"user_id": user_id})
     return user
 
 
@@ -145,7 +145,7 @@ def require_permission(permission: PermissionEnum):
     ) -> UserEntity:
         user_perms = await role_actions.get_user_permissions(current_user.id)
         if permission.value not in user_perms:
-            raise ForbiddenException('Permission denied')
+            raise ForbiddenException('Permission denied', details={"required_permission": permission.value})
         return current_user
 
     return dependency

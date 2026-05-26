@@ -25,8 +25,12 @@ class NfcePageFetcher:
                 response.raise_for_status()
                 return response.text
         except httpx.RequestError as exc:
-            raise NfceScrapingException(f'Error connecting to SEFAZ: {exc}') from exc
+            raise NfceScrapingException(
+                f'Error connecting to SEFAZ: {exc}',
+                details={"url": url, "error_type": type(exc).__name__}
+            ) from exc
         except httpx.HTTPStatusError as exc:
             raise NfceScrapingException(
-                f'SEFAZ returned HTTP error: {exc.response.status_code}'
+                f'SEFAZ returned HTTP error: {exc.response.status_code}',
+                details={"url": url, "status_code": exc.response.status_code}
             ) from exc

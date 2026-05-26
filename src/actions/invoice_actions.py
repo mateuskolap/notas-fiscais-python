@@ -44,7 +44,9 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
 
     async def find_with_user_scoped(self, id: int, user_id: int) -> InvoiceEntity:
         return await self._get_or_raise(
-            finder=lambda: self.invoice_repo.find_by_id_with_user_scoped(id, user_id)
+            id=id,
+            finder=lambda: self.invoice_repo.find_by_id_with_user_scoped(id, user_id),
+            resource_name='Invoice',
         )
 
     async def list_items_paginated(
@@ -56,7 +58,9 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
         filters: InvoiceItemFilterParams | None = None,
     ) -> PaginatedResponse[InvoiceItemEntity]:
         await self._get_or_raise(
-            finder=lambda: self.invoice_repo.find_by_id_and_user(invoice_id, user_id)
+            id=invoice_id,
+            finder=lambda: self.invoice_repo.find_by_id_and_user(invoice_id, user_id),
+            resource_name='Invoice',
         )
         return await self._paginated_query(
             self.invoice_item_repo.find_paginated_by_invoice,
@@ -70,7 +74,8 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
         existing_invoice = await self.invoice_repo.find_by_url_and_user(url, user.id)
         if existing_invoice:
             raise ConflictException(
-                'NFC-e already extracted and registered in the system.'
+                'NFC-e already extracted and registered in the system.',
+                details={"field": "source_url", "value": url}
             )
 
         parsed = await self.nfce_actions.parse(url)

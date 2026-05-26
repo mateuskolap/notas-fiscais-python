@@ -18,6 +18,7 @@ class BaseActions(Generic[T]):
         *,
         finder: Callable | None = None,
         message: str | None = None,
+        resource_name: str | None = None,
     ) -> T:
         if finder:
             entity = await finder()
@@ -27,7 +28,14 @@ class BaseActions(Generic[T]):
             raise ValueError('Either id or finder must be provided')
 
         if not entity:
-            raise NotFoundException(message or f'{self._entity_name} not found')
+            res_name = resource_name or self._entity_name
+            details = {"resource": res_name}
+            if id is not None:
+                details["id"] = id
+            raise NotFoundException(
+                message or f"{res_name} not found",
+                details=details,
+            )
         return entity
 
     async def _paginated_query(

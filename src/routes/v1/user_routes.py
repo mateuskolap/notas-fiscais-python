@@ -25,6 +25,7 @@ router = APIRouter(prefix='/users', tags=['users'])
     responses={
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def list_users(
@@ -50,6 +51,7 @@ async def list_users(
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
         404: {'model': ErrorResponse, 'description': 'User not found'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def find_user(
@@ -69,11 +71,11 @@ async def find_user(
     response_model=UserRead,
     summary='Register a new user',
     responses={
-        400: {'model': ErrorResponse, 'description': 'Validation or bad request'},
         409: {
             'model': ErrorResponse,
             'description': 'User with this email already exists',
         },
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def create_user(data: UserCreate, actions: UserAct):
@@ -98,6 +100,7 @@ async def create_user(data: UserCreate, actions: UserAct):
             'model': ErrorResponse,
             'description': 'Email is already taken by another user',
         },
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def update_user(
@@ -123,6 +126,7 @@ async def update_user(
             'model': ErrorResponse,
             'description': 'Email is already taken by another user',
         },
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def update_current_user(
@@ -144,6 +148,7 @@ async def update_current_user(
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
         404: {'model': ErrorResponse, 'description': 'User not found'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def delete_user(
@@ -169,7 +174,7 @@ async def delete_user(
         },
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
         404: {'model': ErrorResponse, 'description': 'User not found'},
-        422: {'description': 'New password validation failed'},
+        422: {'model': ErrorResponse, 'description': 'New password validation failed'},
     },
 )
 async def reset_user_password(

@@ -13,7 +13,10 @@ class EstablishmentActions(BaseActions[EstablishmentEntity]):
     async def create(self, data: EstablishmentCreate) -> EstablishmentEntity:
         existing = await self.repository.find_by_tin(data.business_tin)
         if existing:
-            raise ConflictException('CNPJ already registered')
+            raise ConflictException(
+                'CNPJ already registered',
+                details={"field": "business_tin", "value": data.business_tin}
+            )
 
         establishment = EstablishmentEntity(
             name=data.name,
@@ -36,7 +39,10 @@ class EstablishmentActions(BaseActions[EstablishmentEntity]):
         ):
             existing = await self.repository.find_by_tin(update_data['business_tin'])
             if existing:
-                raise ConflictException('CNPJ already registered')
+                raise ConflictException(
+                    'CNPJ already registered',
+                    details={"field": "business_tin", "value": update_data['business_tin']}
+                )
 
         for field, value in update_data.items():
             setattr(establishment, field, value)

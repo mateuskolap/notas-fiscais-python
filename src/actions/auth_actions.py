@@ -18,14 +18,20 @@ class AuthActions:
     async def login(self, email: str, password: str) -> TokenResponse:
         user = await self.user_repo.find_by_email(email)
         if not user or not verify_password(password, user.password):
-            raise UnauthorizedException('Incorrect email or password')
+            raise UnauthorizedException(
+                'Incorrect email or password',
+                details={"email": email}
+            )
 
         return await self._generate_tokens_for_user(user.id)
 
     async def refresh(self, refresh_token: str) -> TokenResponse:
         token = await self.token_repo.find_valid_token(refresh_token)
         if not token:
-            raise UnauthorizedException('Invalid or expired refresh token')
+            raise UnauthorizedException(
+                'Invalid or expired refresh token',
+                details={"reason": "token_not_found_or_revoked"}
+            )
 
         await self.token_repo.revoke_token(token)
 

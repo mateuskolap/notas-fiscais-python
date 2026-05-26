@@ -1,15 +1,25 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
-class ErrorResponse(BaseModel):
-    detail: str
-
-
-class ValidationErrorDetail(BaseModel):
-    loc: list[str | int]
-    msg: str
+class FieldError(BaseModel):
+    field: str
+    message: str
     type: str
 
 
-class ValidationErrorResponse(BaseModel):
-    detail: list[ValidationErrorDetail]
+class ErrorDetails(BaseModel):
+    fields: list[FieldError] | None = None
+    model_config = ConfigDict(extra="allow")
+
+
+class ErrorBody(BaseModel):
+    code: str
+    message: str
+    details: dict | None = None
+    timestamp: str
+    path: str
+    request_id: str
+
+
+class ErrorResponse(BaseModel):
+    error: ErrorBody

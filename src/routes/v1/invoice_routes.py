@@ -28,6 +28,7 @@ router = APIRouter(
     summary='List all invoices',
     responses={
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def list_invoices(
@@ -55,6 +56,7 @@ async def list_invoices(
     responses={
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         404: {'model': ErrorResponse, 'description': 'Invoice not found'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def find_invoice(
@@ -78,6 +80,7 @@ async def find_invoice(
     responses={
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         404: {'model': ErrorResponse, 'description': 'Invoice not found'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def list_invoice_items(
@@ -105,15 +108,12 @@ async def list_invoice_items(
     response_model=InvoiceResponse,
     summary='Extract invoice from NFC-e URL',
     responses={
-        400: {
-            'model': ErrorResponse,
-            'description': 'Invalid NFC-e URL or domain not allowed',
-        },
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         409: {
             'model': ErrorResponse,
             'description': 'Invoice has already been registered',
         },
+        422: {'model': ErrorResponse, 'description': 'Validation error or invalid URL'},
         502: {
             'model': ErrorResponse,
             'description': 'State portal returned an error during extraction',

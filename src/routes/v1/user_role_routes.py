@@ -18,10 +18,10 @@ router = APIRouter(prefix='/users/{user_id}/roles', tags=['user_roles'])
     response_model=list[RoleReadSimple],
     summary='Assign roles to a user',
     responses={
-        400: {'model': ErrorResponse, 'description': 'Validation or bad request'},
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
         404: {'model': ErrorResponse, 'description': 'User or roles not found'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def assign_user_roles(

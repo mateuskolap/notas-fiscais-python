@@ -25,6 +25,7 @@ router = APIRouter(prefix='/establishments', tags=['establishments'])
     responses={
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
     dependencies=[Depends(require_permission(PermissionEnum.ESTABLISHMENTS_READ))],
 )
@@ -55,6 +56,7 @@ async def list_establishments(
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
         404: {'model': ErrorResponse, 'description': 'Establishment not found'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
     dependencies=[Depends(require_permission(PermissionEnum.ESTABLISHMENTS_READ))],
 )
@@ -77,13 +79,13 @@ async def find_establishment(
     response_model=EstablishmentRead,
     summary='Create a new establishment',
     responses={
-        400: {'model': ErrorResponse, 'description': 'Validation or bad request'},
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
         409: {
             'model': ErrorResponse,
             'description': 'Establishment with this CNPJ already exists',
         },
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
     dependencies=[Depends(require_permission(PermissionEnum.ESTABLISHMENTS_CREATE))],
 )
@@ -104,7 +106,6 @@ async def create_establishment(
     response_model=EstablishmentRead,
     summary='Update establishment by ID',
     responses={
-        400: {'model': ErrorResponse, 'description': 'Validation or bad request'},
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
         404: {'model': ErrorResponse, 'description': 'Establishment not found'},
@@ -112,6 +113,7 @@ async def create_establishment(
             'model': ErrorResponse,
             'description': 'Establishment CNPJ conflict with another establishment',
         },
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
     dependencies=[Depends(require_permission(PermissionEnum.ESTABLISHMENTS_UPDATE))],
 )
@@ -137,6 +139,7 @@ async def update_establishment(
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
         404: {'model': ErrorResponse, 'description': 'Establishment not found'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
     dependencies=[Depends(require_permission(PermissionEnum.ESTABLISHMENTS_DELETE))],
 )

@@ -18,6 +18,7 @@ router = APIRouter(prefix='/auth', tags=['auth'])
     summary='User authentication',
     responses={
         401: {'model': ErrorResponse, 'description': 'Invalid username or password'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def login(
@@ -42,6 +43,7 @@ async def login(
             'model': ErrorResponse,
             'description': 'Invalid or expired refresh token',
         },
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def refresh(data: RefreshTokenRequest, actions: AuthAct):
@@ -59,6 +61,7 @@ async def refresh(data: RefreshTokenRequest, actions: AuthAct):
     summary='User logout',
     responses={
         401: {'model': ErrorResponse, 'description': 'Invalid or expired token'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def logout(data: RefreshTokenRequest, actions: AuthAct):

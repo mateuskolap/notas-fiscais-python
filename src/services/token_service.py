@@ -24,12 +24,15 @@ def decode_access_token(token: str, settings: Settings) -> dict:
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
         if payload.get('type') != 'access':
-            raise UnauthorizedException('Invalid token type')
+            raise UnauthorizedException(
+                'Invalid token type',
+                details={"expected": "access", "actual": payload.get('type')}
+            )
         return payload
-    except jwt.ExpiredSignatureError:
-        raise UnauthorizedException('Token expired')
-    except jwt.InvalidTokenError:
-        raise UnauthorizedException('Invalid token')
+    except jwt.ExpiredSignatureError as exc:
+        raise UnauthorizedException('Token expired', details={"reason": "expired"}) from exc
+    except jwt.InvalidTokenError as exc:
+        raise UnauthorizedException('Invalid token', details={"reason": "invalid_signature_or_malformed"}) from exc
 
 
 def generate_refresh_token() -> str:

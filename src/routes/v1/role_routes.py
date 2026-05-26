@@ -47,6 +47,7 @@ async def list_permissions(
     responses={
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def list_roles(
@@ -72,6 +73,7 @@ async def list_roles(
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
         404: {'model': ErrorResponse, 'description': 'Role not found'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def find_role(
@@ -91,11 +93,11 @@ async def find_role(
     response_model=RoleReadSimple,
     summary='Create a new role',
     responses={
-        400: {'model': ErrorResponse, 'description': 'Validation or bad request'},
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
         404: {'model': ErrorResponse, 'description': 'Permissions not found'},
         409: {'model': ErrorResponse, 'description': 'Role name already exists'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def create_role(
@@ -117,11 +119,11 @@ async def create_role(
     response_model=RoleReadSimple,
     summary='Update role by ID',
     responses={
-        400: {'model': ErrorResponse, 'description': 'Validation or bad request'},
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
         404: {'model': ErrorResponse, 'description': 'Role or permissions not found'},
         409: {'model': ErrorResponse, 'description': 'Role name already taken'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def update_role(
@@ -146,6 +148,7 @@ async def update_role(
         401: {'model': ErrorResponse, 'description': 'Missing or invalid token'},
         403: {'model': ErrorResponse, 'description': 'Permission denied'},
         404: {'model': ErrorResponse, 'description': 'Role not found'},
+        422: {'model': ErrorResponse, 'description': 'Validation error'},
     },
 )
 async def delete_role(

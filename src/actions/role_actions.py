@@ -30,7 +30,10 @@ class RoleActions(BaseActions[RoleEntity]):
     async def create(self, data: RoleCreate) -> RoleEntity:
         existing = await self.repository.find_by_name(data.name)
         if existing:
-            raise ConflictException(f'{self._entity_name} already exists')
+            raise ConflictException(
+                f'{self._entity_name} already exists',
+                details={"field": "name", "value": data.name}
+            )
 
         permissions_list = [p.value for p in data.permissions]
         db_permissions = await self.permission_repo.find_by_names(permissions_list)
@@ -38,7 +41,10 @@ class RoleActions(BaseActions[RoleEntity]):
         found_names = {p.name for p in db_permissions}
         for p in data.permissions:
             if p.value not in found_names:
-                raise NotFoundException(f'Permission {p.value} not found in database')
+                raise NotFoundException(
+                    f'Permission {p.value} not found in database',
+                    details={"resource": "Permission", "name": p.value}
+                )
 
         role = RoleEntity(
             name=data.name,
@@ -54,7 +60,10 @@ class RoleActions(BaseActions[RoleEntity]):
         if data.name and data.name != role.name:
             existing = await self.repository.find_by_name(data.name)
             if existing:
-                raise ConflictException(f'{self._entity_name} already exists')
+                raise ConflictException(
+                    f'{self._entity_name} already exists',
+                    details={"field": "name", "value": data.name}
+                )
             role.name = data.name
 
         if data.description is not None:
@@ -68,7 +77,8 @@ class RoleActions(BaseActions[RoleEntity]):
             for p in data.permissions:
                 if p.value not in found_names:
                     raise NotFoundException(
-                        f'Permission {p.value} not found in database'
+                        f'Permission {p.value} not found in database',
+                        details={"resource": "Permission", "name": p.value}
                     )
 
             role.permissions = list(db_permissions)
@@ -89,12 +99,12 @@ class RoleActions(BaseActions[RoleEntity]):
             return res.unique().scalar_one_or_none()
 
         user = await self._get_or_raise(
-            finder=find_user_with_roles, message='User not found'
+            id=user_id, finder=find_user_with_roles, message='User not found', resource_name='User'
         )
 
         roles = []
         for rid in role_ids:
-            role = await self._get_or_raise(rid, message=f'Role {rid} not found')
+            role = await self._get_or_raise(rid, message=f'Role {rid} not found', resource_name='Role')
             roles.append(role)
 
         user.roles = roles
@@ -114,7 +124,7 @@ class RoleActions(BaseActions[RoleEntity]):
             )
             return res.unique().scalar_one_or_none()
 
-        user = await self._get_or_raise(finder=find_user, message='User not found')
+        user = await self._get_or_raise(id=user_id, finder=find_user, message='User not found', resource_name='User')
 
         permissions_set = set()
         for role in user.roles:
