@@ -11,5 +11,5 @@ class PermissionEntity(EntityMixin):
     __tablename__ = 'permissions'
 
     name: Mapped[PermissionEnum] = mapped_column(
-        Enum(PermissionEnum, native_enum=False, length=255), nullable=False
+        Enum(PermissionEnum, native_enum=False, length=255), nullable=False, index=True
     )

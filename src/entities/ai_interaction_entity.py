@@ -13,9 +13,6 @@ from src.repositories.database import table_registry
 class AiInteractionEntity(EntityMixin):
     __tablename__ = 'ai_interactions'
 
-    user_id: Mapped[int | None] = mapped_column(
-        ForeignKey('users.id'), nullable=True, index=True, default=None
-    )
     provider: Mapped[AiProviderEnum] = mapped_column(
         Enum(AiProviderEnum, native_enum=False, length=100), nullable=False, index=True
     )
@@ -24,6 +21,9 @@ class AiInteractionEntity(EntityMixin):
     )
     model: Mapped[str] = mapped_column(String(100), nullable=False)
     input_text: Mapped[str] = mapped_column(Text, nullable=False)
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey('users.id'), nullable=True, index=True, default=None
+    )
     output_text: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
     input_tokens: Mapped[int | None] = mapped_column(
         Integer, nullable=True, default=None
