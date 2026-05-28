@@ -20,7 +20,7 @@ class UserActions(BaseActions[UserEntity]):
         if existing:
             raise ConflictException(
                 'Email already registered',
-                details={"field": "email", "value": data.email}
+                details={'field': 'email', 'value': data.email},
             )
 
         user = UserEntity(
@@ -41,7 +41,7 @@ class UserActions(BaseActions[UserEntity]):
             if existing:
                 raise ConflictException(
                     'Email already registered',
-                    details={"field": "email", "value": update_data['email']}
+                    details={'field': 'email', 'value': update_data['email']},
                 )
 
         if 'password' in update_data:
@@ -59,20 +59,19 @@ class UserActions(BaseActions[UserEntity]):
 
         if not verify_password(data.password, user.password):
             raise UnauthorizedException(
-                'Incorrect password',
-                details={"field": "password"}
+                'Incorrect password', details={'field': 'password'}
             )
 
         if data.new_password != data.new_password_confirm:
             raise ValidationException(
                 'New password and confirmation do not match',
-                details={"fields": ["new_password", "new_password_confirm"]}
+                details={'fields': ['new_password', 'new_password_confirm']},
             )
 
         if data.new_password == data.password:
             raise ValidationException(
                 'New password must be different from the current password',
-                details={"field": "new_password"}
+                details={'field': 'new_password'},
             )
 
         user.password = hash_password(data.new_password)

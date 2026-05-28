@@ -15,7 +15,7 @@ class EstablishmentActions(BaseActions[EstablishmentEntity]):
         if existing:
             raise ConflictException(
                 'CNPJ already registered',
-                details={"field": "business_tin", "value": data.business_tin}
+                details={'field': 'business_tin', 'value': data.business_tin},
             )
 
         establishment = EstablishmentEntity(
@@ -41,7 +41,10 @@ class EstablishmentActions(BaseActions[EstablishmentEntity]):
             if existing:
                 raise ConflictException(
                     'CNPJ already registered',
-                    details={"field": "business_tin", "value": update_data['business_tin']}
+                    details={
+                        'field': 'business_tin',
+                        'value': update_data['business_tin'],
+                    },
                 )
 
         for field, value in update_data.items():

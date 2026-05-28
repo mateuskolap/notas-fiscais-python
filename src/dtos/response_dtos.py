@@ -9,7 +9,7 @@ class FieldError(BaseModel):
 
 class ErrorDetails(BaseModel):
     fields: list[FieldError] | None = None
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra='allow')
 
 
 class ErrorBody(BaseModel):

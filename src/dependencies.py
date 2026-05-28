@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Annotated, Type, TypeVar
 
 from fastapi import Depends
@@ -11,8 +12,10 @@ from src.actions.nfce_actions import NfceActions
 from src.actions.role_actions import RoleActions
 from src.actions.user_actions import UserActions
 from src.entities.user_entity import UserEntity
+from src.enums.ai_enum import AiProviderEnum
 from src.enums.permission_enum import PermissionEnum
 from src.exceptions.base_exceptions import ForbiddenException, UnauthorizedException
+from src.repositories.ai_interaction_repository import AiInteractionRepository
 from src.repositories.database import get_session
 from src.repositories.establishment_repository import EstablishmentRepository
 from src.repositories.invoice_item_repository import InvoiceItemRepository
@@ -21,6 +24,8 @@ from src.repositories.permission_repository import PermissionRepository
 from src.repositories.refresh_token_repository import RefreshTokenRepository
 from src.repositories.role_repository import RoleRepository
 from src.repositories.user_repository import UserRepository
+from src.services.ai.ai_provider import AiProvider
+from src.services.ai.ai_service import AiService
 from src.services.nfce.extractor import NfceExtractorFactory
 from src.services.nfce.fetcher import NfcePageFetcher
 from src.services.token_service import decode_access_token
@@ -30,6 +35,10 @@ Session = Annotated[AsyncSession, Depends(get_session)]
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/auth/login')
 
+
+# ==============================================================================
+# Helper & Base Dependencies
+# ==============================================================================
 
 T = TypeVar('T')
 
@@ -42,18 +51,51 @@ def _repository_dependency(repo_class: Type[T]):
     return _get_repository
 
 
+# ==============================================================================
+# Repository Dependencies
+# ==============================================================================
+
 UserRepo = Annotated[UserRepository, Depends(_repository_dependency(UserRepository))]
 
+RefreshTokenRepo = Annotated[
+    RefreshTokenRepository, Depends(_repository_dependency(RefreshTokenRepository))
+]
 
+EstablishmentRepo = Annotated[
+    EstablishmentRepository,
+    Depends(_repository_dependency(EstablishmentRepository)),
+]
+
+InvoiceRepo = Annotated[
+    InvoiceRepository, Depends(_repository_dependency(InvoiceRepository))
+]
+
+InvoiceItemRepo = Annotated[
+    InvoiceItemRepository, Depends(_repository_dependency(InvoiceItemRepository))
+]
+
+RoleRepo = Annotated[RoleRepository, Depends(_repository_dependency(RoleRepository))]
+
+PermissionRepo = Annotated[
+    PermissionRepository, Depends(_repository_dependency(PermissionRepository))
+]
+
+AiInteractionRepo = Annotated[
+    AiInteractionRepository, Depends(_repository_dependency(AiInteractionRepository))
+]
+
+
+# ==============================================================================
+# Action Dependencies
+# ==============================================================================
+
+
+# --- Users & Authentication ---
 async def get_user_actions(repository: UserRepo) -> UserActions:
     return UserActions(repository)
 
 
 UserAct = Annotated[UserActions, Depends(get_user_actions)]
-
-RefreshTokenRepo = Annotated[
-    RefreshTokenRepository, Depends(_repository_dependency(RefreshTokenRepository))
-]
 
 
 async def get_auth_actions(
@@ -65,33 +107,45 @@ async def get_auth_actions(
 AuthAct = Annotated[AuthActions, Depends(get_auth_actions)]
 
 
-async def get_nfce_actions() -> NfceActions:
-    return NfceActions(NfcePageFetcher(), NfceExtractorFactory())
+# --- Roles & Permissions ---
+async def get_role_actions(
+    repository: RoleRepo,
+    permission_repo: PermissionRepo,
+    user_repo: UserRepo,
+) -> RoleActions:
+    return RoleActions(repository, permission_repo, user_repo)
+
+
+RoleAct = Annotated[RoleActions, Depends(get_role_actions)]
+
+
+# --- Establishments ---
+async def get_establishment_actions(
+    repository: EstablishmentRepo,
+) -> EstablishmentActions:
+    return EstablishmentActions(repository)
+
+
+EstablishmentAct = Annotated[EstablishmentActions, Depends(get_establishment_actions)]
+
+
+# --- NFC-e ---
+@lru_cache
+def get_nfce_fetcher() -> NfcePageFetcher:
+    return NfcePageFetcher()
+
+
+NfceFetcherDep = Annotated[NfcePageFetcher, Depends(get_nfce_fetcher)]
+
+
+async def get_nfce_actions(fetcher: NfceFetcherDep) -> NfceActions:
+    return NfceActions(fetcher, NfceExtractorFactory())
 
 
 NfceAct = Annotated[NfceActions, Depends(get_nfce_actions)]
 
 
-EstablishmentRepo = Annotated[
-    EstablishmentRepository,
-    Depends(_repository_dependency(EstablishmentRepository)),
-]
-
-InvoiceRepo = Annotated[
-    InvoiceRepository, Depends(_repository_dependency(InvoiceRepository))
-]
-InvoiceRepo = Annotated[
-    InvoiceRepository, Depends(_repository_dependency(InvoiceRepository))
-]
-
-InvoiceItemRepo = Annotated[
-    InvoiceItemRepository, Depends(_repository_dependency(InvoiceItemRepository))
-]
-InvoiceItemRepo = Annotated[
-    InvoiceItemRepository, Depends(_repository_dependency(InvoiceItemRepository))
-]
-
-
+# --- Invoices ---
 async def get_invoice_actions(
     nfce_actions: NfceAct,
     establishment_repo: EstablishmentRepo,
@@ -106,6 +160,11 @@ async def get_invoice_actions(
 InvoiceAct = Annotated[InvoiceActions, Depends(get_invoice_actions)]
 
 
+# ==============================================================================
+# Auth & Permission Guards
+# ==============================================================================
+
+
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
     repository: UserRepo,
@@ -114,28 +173,11 @@ async def get_current_user(
     user_id = int(payload['sub'])
     user = await repository.find_by_id(user_id)
     if not user:
-        raise UnauthorizedException('User not found', details={"user_id": user_id})
+        raise UnauthorizedException('User not found', details={'user_id': user_id})
     return user
 
 
 CurrentUser = Annotated[UserEntity, Depends(get_current_user)]
-
-
-RoleRepo = Annotated[RoleRepository, Depends(_repository_dependency(RoleRepository))]
-PermissionRepo = Annotated[
-    PermissionRepository, Depends(_repository_dependency(PermissionRepository))
-]
-
-
-async def get_role_actions(
-    repository: RoleRepo,
-    permission_repo: PermissionRepo,
-    user_repo: UserRepo,
-) -> RoleActions:
-    return RoleActions(repository, permission_repo, user_repo)
-
-
-RoleAct = Annotated[RoleActions, Depends(get_role_actions)]
 
 
 def require_permission(permission: PermissionEnum):
@@ -145,16 +187,39 @@ def require_permission(permission: PermissionEnum):
     ) -> UserEntity:
         user_perms = await role_actions.get_user_permissions(current_user.id)
         if permission.value not in user_perms:
-            raise ForbiddenException('Permission denied', details={"required_permission": permission.value})
+            raise ForbiddenException(
+                'Permission denied', details={'required_permission': permission.value}
+            )
         return current_user
 
     return dependency
 
 
-async def get_establishment_actions(
-    repository: EstablishmentRepo,
-) -> EstablishmentActions:
-    return EstablishmentActions(repository)
+# ==============================================================================
+# Service Dependencies
+# ==============================================================================
 
 
-EstablishmentAct = Annotated[EstablishmentActions, Depends(get_establishment_actions)]
+@lru_cache
+def _get_ai_provider() -> AiProvider:
+    provider = settings.AI_PROVIDER
+
+    match provider:
+        case AiProviderEnum.GEMINI:
+            from src.services.ai.ai_provider import GeminiAiProvider
+
+            return GeminiAiProvider()
+        case _:
+            raise NotImplementedError(
+                f'The specified AI provider "{provider}" is not supported.'
+            )
+
+
+async def get_ai_service(
+    repository: AiInteractionRepo,
+) -> AiService:
+    provider = _get_ai_provider()
+    return AiService(provider, repository)
+
+
+AiSvc = Annotated[AiService, Depends(get_ai_service)]

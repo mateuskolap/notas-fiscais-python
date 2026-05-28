@@ -12,7 +12,7 @@ class RefreshTokenEntity(EntityMixin):
     __tablename__ = 'refresh_tokens'
 
     token: Mapped[str] = mapped_column(String(255), unique=True, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), index=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     revoked_at: Mapped[datetime | None] = mapped_column(
         DateTime, nullable=True, init=False, default=None

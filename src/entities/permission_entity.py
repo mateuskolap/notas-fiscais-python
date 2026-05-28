@@ -1,7 +1,8 @@
-from sqlalchemy import String
+from sqlalchemy import Enum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.entities.base_entities import EntityMixin
+from src.enums.permission_enum import PermissionEnum
 from src.repositories.database import table_registry
 
 
@@ -9,4 +10,6 @@ from src.repositories.database import table_registry
 class PermissionEntity(EntityMixin):
     __tablename__ = 'permissions'
 
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    name: Mapped[PermissionEnum] = mapped_column(
+        Enum(PermissionEnum, native_enum=False, length=255), nullable=False
+    )

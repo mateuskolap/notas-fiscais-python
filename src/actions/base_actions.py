@@ -29,11 +29,11 @@ class BaseActions(Generic[T]):
 
         if not entity:
             res_name = resource_name or self._entity_name
-            details = {"resource": res_name}
+            details = {'resource': res_name}
             if id is not None:
-                details["id"] = id
+                details['id'] = id
             raise NotFoundException(
-                message or f"{res_name} not found",
+                message or f'{res_name} not found',
                 details=details,
             )
         return entity

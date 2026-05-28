@@ -19,8 +19,7 @@ class AuthActions:
         user = await self.user_repo.find_by_email(email)
         if not user or not verify_password(password, user.password):
             raise UnauthorizedException(
-                'Incorrect email or password',
-                details={"email": email}
+                'Incorrect email or password', details={'email': email}
             )
 
         return await self._generate_tokens_for_user(user.id)
@@ -30,7 +29,7 @@ class AuthActions:
         if not token:
             raise UnauthorizedException(
                 'Invalid or expired refresh token',
-                details={"reason": "token_not_found_or_revoked"}
+                details={'reason': 'token_not_found_or_revoked'},
             )
 
         await self.token_repo.revoke_token(token)

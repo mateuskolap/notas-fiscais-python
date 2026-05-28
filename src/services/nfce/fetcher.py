@@ -14,23 +14,28 @@ _HEADERS = {
 
 
 class NfcePageFetcher:
-    @staticmethod
-    async def fetch(url: str) -> str:
+    def __init__(self):
+        self._client = httpx.AsyncClient(
+            timeout=15,
+            follow_redirects=True,
+            headers=_HEADERS,
+        )
+
+    async def fetch(self, url: str) -> str:
         try:
-            async with httpx.AsyncClient(
-                timeout=15,
-                follow_redirects=True,
-            ) as client:
-                response = await client.get(url, headers=_HEADERS)
-                response.raise_for_status()
-                return response.text
+            response = await self._client.get(url)
+            response.raise_for_status()
+            return response.text
         except httpx.RequestError as exc:
             raise NfceScrapingException(
                 f'Error connecting to SEFAZ: {exc}',
-                details={"url": url, "error_type": type(exc).__name__}
+                details={'url': url, 'error_type': type(exc).__name__},
             ) from exc
         except httpx.HTTPStatusError as exc:
             raise NfceScrapingException(
                 f'SEFAZ returned HTTP error: {exc.response.status_code}',
-                details={"url": url, "status_code": exc.response.status_code}
+                details={'url': url, 'status_code': exc.response.status_code},
             ) from exc
+
+    async def close(self):
+        await self._client.aclose()

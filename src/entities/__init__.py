@@ -1,3 +1,4 @@
+from src.entities.ai_interaction_entity import AiInteractionEntity
 from src.entities.establishment_entity import EstablishmentEntity
 from src.entities.invoice_entity import InvoiceEntity
 from src.entities.invoice_item_entity import InvoiceItemEntity
@@ -14,4 +15,5 @@ __all__ = [
     'InvoiceItemEntity',
     'RoleEntity',
     'UserRoleEntity',
+    'AiInteractionEntity',
 ]

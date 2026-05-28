@@ -11,7 +11,9 @@ from src.repositories.database import table_registry
 class InvoiceItemEntity(SoftDeleteEntityMixin):
     __tablename__ = 'invoice_items'
 
-    invoice_id: Mapped[int] = mapped_column(ForeignKey('invoices.id'), nullable=False)
+    invoice_id: Mapped[int] = mapped_column(
+        ForeignKey('invoices.id'), nullable=False, index=True
+    )
     description: Mapped[str] = mapped_column(String(500), nullable=False)
     code: Mapped[str | None] = mapped_column(String(50), nullable=True)
     unit: Mapped[str] = mapped_column(String(20), nullable=False)

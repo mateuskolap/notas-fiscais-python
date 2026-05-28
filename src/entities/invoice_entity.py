@@ -12,9 +12,11 @@ from src.repositories.database import table_registry
 class InvoiceEntity(SoftDeleteEntityMixin):
     __tablename__ = 'invoices'
 
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey('users.id'), nullable=False, index=True
+    )
     establishment_id: Mapped[int] = mapped_column(
-        ForeignKey('establishments.id'), nullable=False
+        ForeignKey('establishments.id'), nullable=False, index=True
     )
     source_url: Mapped[str] = mapped_column(
         Text, unique=True, nullable=False, index=True

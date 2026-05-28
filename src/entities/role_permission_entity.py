@@ -10,10 +10,10 @@ class RolePermissionEntity(EntityMixin):
     __tablename__ = 'role_permissions'
 
     role_id: Mapped[int] = mapped_column(
-        ForeignKey('roles.id', ondelete='CASCADE'), nullable=False
+        ForeignKey('roles.id', ondelete='CASCADE'), nullable=False, index=True
     )
     permission_id: Mapped[int] = mapped_column(
-        ForeignKey('permissions.id', ondelete='CASCADE'), nullable=False
+        ForeignKey('permissions.id', ondelete='CASCADE'), nullable=False, index=True
     )
 
     __table_args__ = (

@@ -75,7 +75,7 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
         if existing_invoice:
             raise ConflictException(
                 'NFC-e already extracted and registered in the system.',
-                details={"field": "source_url", "value": url}
+                details={'field': 'source_url', 'value': url},
             )
 
         parsed = await self.nfce_actions.parse(url)
