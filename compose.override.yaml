@@ -32,6 +32,34 @@ services:
       db:
         condition: service_healthy
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  celery_worker:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    command: ["uv", "run", "celery", "-A", "src.worker.celery_app", "worker", "--loglevel=info"]
+    env_file:
+      - ./.env
+    volumes:
+      - .:/app
+      - /app/.venv
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
 volumes:
   db:
     driver: local

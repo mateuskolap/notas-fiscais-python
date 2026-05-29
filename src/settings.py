@@ -3,6 +3,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from src.enums.ai_enum import AiProviderEnum
 
 
+class AppSettings(BaseSettings):
+    APP_TIMEZONE: str = 'America/Sao_Paulo'
+
+
 class AuthSettings(BaseSettings):
     SECRET_KEY: str = ''
     ALGORITHM: str = 'HS256'
@@ -34,7 +38,12 @@ class AiSettings(BaseSettings):
     AI_TEMPERATURE: float = 0.0
 
 
-class Settings(AuthSettings, DatabaseSettings, AiSettings):
+class CelerySettings(BaseSettings):
+    CELERY_BROKER_URL: str = 'amqp://guest:guest@rabbitmq:5672//'
+    CELERY_RESULT_BACKEND: str = 'rpc://'
+
+
+class Settings(AppSettings, AuthSettings, DatabaseSettings, AiSettings, CelerySettings):
     model_config = SettingsConfigDict(
         env_file='.env',
         env_file_encoding='utf-8',
