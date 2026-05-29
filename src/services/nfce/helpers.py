@@ -2,7 +2,7 @@ import re
 import unicodedata
 from decimal import Decimal
 
-from bs4 import NavigableString, Tag
+from bs4.element import NavigableString, Tag
 
 
 def clean_text(

@@ -1,16 +1,15 @@
-from typing import Generic, Sequence, TypeVar
+from typing import Sequence
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.dtos.base_dtos import BaseFilterParams
-from src.entities.base_entities import SoftDeleteEntityMixin
-
-T = TypeVar('T')
+from src.entities.base_entities import EntityMixin, SoftDeleteEntityMixin
 
 
-class BaseRepository(Generic[T]):
+class BaseRepository[T: EntityMixin]:
     _model: type[T]
+    model: type[T]
 
     def __init_subclass__(cls, model: type | None = None, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -19,7 +18,12 @@ class BaseRepository(Generic[T]):
 
     def __init__(self, session: AsyncSession):
         if not hasattr(self, 'model') or getattr(self, 'model', None) is None:
-            self.model = getattr(self, '_model', None)
+            model = getattr(self, '_model', None)
+            if model is None:
+                raise ValueError(
+                    f'Repository {self.__class__.__name__} must have a model defined.'
+                )
+            self.model = model
         self.session = session
 
     @property
@@ -89,7 +93,7 @@ class BaseRepository(Generic[T]):
 
     async def find_by_id(self, id: int) -> T | None:
         result = await self.session.execute(
-            self._base_query().where(self.model.id == id)  # type: ignore
+            self._base_query().where(self.model.id == id)
         )
         return result.unique().scalar_one_or_none()
 

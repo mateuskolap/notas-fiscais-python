@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Annotated, Type, TypeVar
+from typing import Annotated, Any
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -16,6 +16,7 @@ from src.enums.ai_enum import AiProviderEnum
 from src.enums.permission_enum import PermissionEnum
 from src.exceptions.base_exceptions import ForbiddenException, UnauthorizedException
 from src.repositories.ai_interaction_repository import AiInteractionRepository
+from src.repositories.base_repository import BaseRepository
 from src.repositories.database import get_session
 from src.repositories.establishment_repository import EstablishmentRepository
 from src.repositories.invoice_item_repository import InvoiceItemRepository
@@ -40,10 +41,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/v1/auth/login')
 # Helper & Base Dependencies
 # ==============================================================================
 
-T = TypeVar('T')
 
-
-def _repository_dependency(repo_class: Type[T]):
+def _repository_dependency[T: BaseRepository[Any]](repo_class: type[T]):
     async def _get_repository(session: Session) -> T:
         return repo_class(session)
 

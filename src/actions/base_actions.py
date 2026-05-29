@@ -1,13 +1,12 @@
-from typing import Awaitable, Callable, Generic, Sequence, TypeVar
+from typing import Any, Awaitable, Callable, Sequence
 
 from src.dtos.pagination_dtos import PaginatedResponse
+from src.entities.base_entities import EntityMixin
 from src.exceptions.base_exceptions import NotFoundException
 from src.repositories.base_repository import BaseRepository
 
-T = TypeVar('T')
 
-
-class BaseActions(Generic[T]):
+class BaseActions[T: EntityMixin]:
     def __init__(self, repository: BaseRepository[T], entity_name: str = 'Entity'):
         self.repository = repository
         self._entity_name = entity_name
@@ -29,7 +28,7 @@ class BaseActions(Generic[T]):
 
         if not entity:
             res_name = resource_name or self._entity_name
-            details = {'resource': res_name}
+            details: dict[str, Any] = {'resource': res_name}
             if id is not None:
                 details['id'] = id
             raise NotFoundException(

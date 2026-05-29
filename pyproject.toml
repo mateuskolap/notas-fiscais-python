@@ -9,6 +9,7 @@ dependencies = [
     "bcrypt>=5.0.0",
     "beautifulsoup4>=4.14.3",
     "fastapi[standard]>=0.136.0",
+    "google-genai>=2.6.0",
     "httpx>=0.28.1",
     "lxml>=6.1.0",
     "psycopg[binary]>=3.3.3",

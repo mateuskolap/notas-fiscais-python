@@ -70,6 +70,7 @@ class AiService:
     ) -> None:
         metadata = {
             'temperature': request.temperature,
+            'system_prompt': request.system_prompt,
         }
 
         entity = AiInteractionEntity(
