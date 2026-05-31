@@ -44,21 +44,40 @@ services:
       retries: 5
 
   celery_worker:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
       target: dev
-    command: ["uv", "run", "celery", "-A", "src.worker.celery_app", "worker", "--loglevel=info"]
+    command: ["uv", "run", "celery", "-A", "src.worker.celery_app", "worker", "--loglevel=info", "--concurrency=2"]
     env_file:
       - ./.env
     volumes:
       - .:/app
       - /app/.venv
     depends_on:
-      db:
-        condition: service_healthy
+      app:
+        condition: service_started
       rabbitmq:
         condition: service_healthy
+    restart: unless-stopped
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    command: ["uv", "run", "celery", "-A", "src.worker.celery_app", "beat", "--loglevel=info"]
+    env_file:
+      - ./.env
+    volumes:
+      - .:/app
+      - /app/.venv
+    depends_on:
+      app:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   db:

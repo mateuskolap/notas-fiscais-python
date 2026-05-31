@@ -11,6 +11,8 @@ class PaginationParams(BaseModel):
 
 
 class PaginatedResponse[T](BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True)
+
     items: list[T]
     total: int
     page: int
