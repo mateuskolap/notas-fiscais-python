@@ -24,3 +24,6 @@ class InvoiceItemEntity(SoftDeleteEntityMixin):
     invoice: Mapped['InvoiceEntity'] = relationship(  # noqa: F821
         back_populates='items', init=False
     )
+    product_match: Mapped['ProductMatchEntity'] = relationship(  # noqa: F821
+        back_populates='invoice_item', init=False, uselist=False, lazy='noload'
+    )

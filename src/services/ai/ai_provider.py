@@ -67,6 +67,7 @@ class GeminiAiProvider(AiProvider):
             temperature=request.temperature,
             max_output_tokens=request.max_tokens,
             safety_settings=self._get_safety_settings(),
+            response_mime_type='application/json',
         )
 
     async def _call_gemini_api(

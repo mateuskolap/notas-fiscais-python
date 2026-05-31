@@ -22,3 +22,9 @@ class PermissionEnum(StrEnum):
     ESTABLISHMENTS_CREATE = 'establishments_create'
     ESTABLISHMENTS_UPDATE = 'establishments_update'
     ESTABLISHMENTS_DELETE = 'establishments_delete'
+
+    PRODUCTS_READ = 'products_read'
+    PRODUCTS_SEARCH = 'products_search'
+    PRODUCTS_OVERRIDE = 'products_override'
+    PRODUCT_CATEGORIES_READ = 'product_categories_read'
+    PRODUCT_CATEGORIES_MANAGE = 'product_categories_manage'

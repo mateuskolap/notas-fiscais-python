@@ -9,6 +9,8 @@ from src.actions.auth_actions import AuthActions
 from src.actions.establishment_actions import EstablishmentActions
 from src.actions.invoice_actions import InvoiceActions
 from src.actions.nfce_actions import NfceActions
+from src.actions.product_normalization_actions import ProductNormalizationActions
+from src.actions.product_search_actions import ProductSearchActions
 from src.actions.role_actions import RoleActions
 from src.actions.user_actions import UserActions
 from src.entities.user_entity import UserEntity
@@ -17,16 +19,23 @@ from src.enums.permission_enum import PermissionEnum
 from src.exceptions.base_exceptions import ForbiddenException, UnauthorizedException
 from src.repositories.ai_interaction_repository import AiInteractionRepository
 from src.repositories.base_repository import BaseRepository
+from src.repositories.canonical_product_repository import CanonicalProductRepository
 from src.repositories.database import get_session
 from src.repositories.establishment_repository import EstablishmentRepository
 from src.repositories.invoice_item_repository import InvoiceItemRepository
 from src.repositories.invoice_repository import InvoiceRepository
 from src.repositories.permission_repository import PermissionRepository
+from src.repositories.product_category_repository import ProductCategoryRepository
+from src.repositories.product_match_repository import ProductMatchRepository
 from src.repositories.refresh_token_repository import RefreshTokenRepository
 from src.repositories.role_repository import RoleRepository
+from src.repositories.user_product_override_repository import (
+    UserProductOverrideRepository,
+)
 from src.repositories.user_repository import UserRepository
 from src.services.ai.ai_provider import AiProvider
 from src.services.ai.ai_service import AiService
+from src.services.ai.product_normalization_service import ProductNormalizationService
 from src.services.nfce.extractor import NfceExtractorFactory
 from src.services.nfce.fetcher import NfcePageFetcher
 from src.services.token_service import decode_access_token
@@ -81,6 +90,22 @@ PermissionRepo = Annotated[
 
 AiInteractionRepo = Annotated[
     AiInteractionRepository, Depends(_repository_dependency(AiInteractionRepository))
+]
+
+ProductCategoryRepo = Annotated[
+    ProductCategoryRepository, Depends(_repository_dependency(ProductCategoryRepository))
+]
+
+CanonicalProductRepo = Annotated[
+    CanonicalProductRepository, Depends(_repository_dependency(CanonicalProductRepository))
+]
+
+ProductMatchRepo = Annotated[
+    ProductMatchRepository, Depends(_repository_dependency(ProductMatchRepository))
+]
+
+UserProductOverrideRepo = Annotated[
+    UserProductOverrideRepository, Depends(_repository_dependency(UserProductOverrideRepository))
 ]
 
 
@@ -144,15 +169,45 @@ async def get_nfce_actions(fetcher: NfceFetcherDep) -> NfceActions:
 NfceAct = Annotated[NfceActions, Depends(get_nfce_actions)]
 
 
-# --- Invoices ---
+# --- Invoices & Products ---
+async def get_product_normalization_actions(
+    match_repo: ProductMatchRepo,
+    canonical_repo: CanonicalProductRepo,
+    category_repo: ProductCategoryRepo,
+    override_repo: UserProductOverrideRepo,
+    ai_service: 'AiSvc',
+) -> ProductNormalizationActions:
+    normalization_service = ProductNormalizationService(ai_service, category_repo)
+    return ProductNormalizationActions(
+        match_repo,
+        canonical_repo,
+        category_repo,
+        override_repo,
+        normalization_service,
+    )
+
+
+ProductNormAct = Annotated[ProductNormalizationActions, Depends(get_product_normalization_actions)]
+
+
+async def get_product_search_actions(
+    repository: CanonicalProductRepo,
+) -> ProductSearchActions:
+    return ProductSearchActions(repository)
+
+
+ProductSearchAct = Annotated[ProductSearchActions, Depends(get_product_search_actions)]
+
+
 async def get_invoice_actions(
     nfce_actions: NfceAct,
     establishment_repo: EstablishmentRepo,
     invoice_repo: InvoiceRepo,
     invoice_item_repo: InvoiceItemRepo,
+    product_norm_actions: ProductNormAct,
 ) -> InvoiceActions:
     return InvoiceActions(
-        nfce_actions, establishment_repo, invoice_repo, invoice_item_repo
+        nfce_actions, establishment_repo, invoice_repo, invoice_item_repo, product_norm_actions
     )
 
 

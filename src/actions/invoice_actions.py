@@ -1,5 +1,6 @@
 from src.actions.base_actions import BaseActions
 from src.actions.nfce_actions import NfceActions
+from src.actions.product_normalization_actions import ProductNormalizationActions
 from src.dtos.invoice_dtos import InvoiceFilterParams, InvoiceItemFilterParams
 from src.dtos.pagination_dtos import PaginatedResponse
 from src.entities.establishment_entity import EstablishmentEntity
@@ -20,12 +21,14 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
         establishment_repo: EstablishmentRepository,
         invoice_repo: InvoiceRepository,
         invoice_item_repo: InvoiceItemRepository,
+        product_normalization_actions: ProductNormalizationActions,
     ):
         super().__init__(invoice_repo, entity_name='Invoice')
         self.nfce_actions = nfce_actions
         self.establishment_repo = establishment_repo
         self.invoice_repo = invoice_repo
         self.invoice_item_repo = invoice_item_repo
+        self.product_normalization_actions = product_normalization_actions
 
     async def list_paginated_by_user(
         self,
@@ -111,5 +114,7 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
         )
 
         await self.invoice_item_repo.create_bulk(items_to_create)
+
+        await self.product_normalization_actions.match_or_enqueue(items_to_create)
 
         return await self.invoice_repo.find_by_id(invoice.id)  # type: ignore
