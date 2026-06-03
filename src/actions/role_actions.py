@@ -32,7 +32,7 @@ class RoleActions(BaseActions[RoleEntity]):
         if existing:
             raise ConflictException(
                 f'{self._entity_name} already exists',
-                details={"field": "name", "value": data.name}
+                details={'field': 'name', 'value': data.name},
             )
 
         permissions_list = [p.value for p in data.permissions]
@@ -43,7 +43,7 @@ class RoleActions(BaseActions[RoleEntity]):
             if p.value not in found_names:
                 raise NotFoundException(
                     f'Permission {p.value} not found in database',
-                    details={"resource": "Permission", "name": p.value}
+                    details={'resource': 'Permission', 'name': p.value},
                 )
 
         role = RoleEntity(
@@ -62,7 +62,7 @@ class RoleActions(BaseActions[RoleEntity]):
             if existing:
                 raise ConflictException(
                     f'{self._entity_name} already exists',
-                    details={"field": "name", "value": data.name}
+                    details={'field': 'name', 'value': data.name},
                 )
             role.name = data.name
 
@@ -78,7 +78,7 @@ class RoleActions(BaseActions[RoleEntity]):
                 if p.value not in found_names:
                     raise NotFoundException(
                         f'Permission {p.value} not found in database',
-                        details={"resource": "Permission", "name": p.value}
+                        details={'resource': 'Permission', 'name': p.value},
                     )
 
             role.permissions = list(db_permissions)
@@ -99,12 +99,17 @@ class RoleActions(BaseActions[RoleEntity]):
             return res.unique().scalar_one_or_none()
 
         user = await self._get_or_raise(
-            id=user_id, finder=find_user_with_roles, message='User not found', resource_name='User'
+            id=user_id,
+            finder=find_user_with_roles,
+            message='User not found',
+            resource_name='User',
         )
 
         roles = []
         for rid in role_ids:
-            role = await self._get_or_raise(rid, message=f'Role {rid} not found', resource_name='Role')
+            role = await self._get_or_raise(
+                rid, message=f'Role {rid} not found', resource_name='Role'
+            )
             roles.append(role)
 
         user.roles = roles
@@ -124,7 +129,9 @@ class RoleActions(BaseActions[RoleEntity]):
             )
             return res.unique().scalar_one_or_none()
 
-        user = await self._get_or_raise(id=user_id, finder=find_user, message='User not found', resource_name='User')
+        user = await self._get_or_raise(
+            id=user_id, finder=find_user, message='User not found', resource_name='User'
+        )
 
         permissions_set = set()
         for role in user.roles:

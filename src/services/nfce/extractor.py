@@ -67,7 +67,10 @@ class PrNfceExtractor(TemplateNfceExtractor):
     def _extract_establishment(self, soup: BeautifulSoup) -> ParsedEstablishment:
         name_node = soup.find(class_='txtTopo')
         if not name_node:
-            raise NfceScrapingException('Establishment name not found.', details={"template": "PrNfceExtractor", "field": "name"})
+            raise NfceScrapingException(
+                'Establishment name not found.',
+                details={'template': 'PrNfceExtractor', 'field': 'name'},
+            )
         name = clean_text(name_node) or 'Unknown'
 
         business_tin = ''
@@ -94,7 +97,10 @@ class PrNfceExtractor(TemplateNfceExtractor):
                     break
 
         if not business_tin:
-            raise NfceScrapingException('CNPJ not found in NFC-e.', details={"template": "PrNfceExtractor", "field": "business_tin"})
+            raise NfceScrapingException(
+                'CNPJ not found in NFC-e.',
+                details={'template': 'PrNfceExtractor', 'field': 'business_tin'},
+            )
 
         return ParsedEstablishment(
             name=name,
@@ -106,17 +112,38 @@ class PrNfceExtractor(TemplateNfceExtractor):
     def _extract_issued_at(self, soup: BeautifulSoup) -> datetime:
         infos = soup.select_one('#infos ul li')
         if not infos:
-            raise NfceScrapingException('Emission date not found.', details={"template": "PrNfceExtractor", "field": "issued_at", "reason": "missing_node"})
+            raise NfceScrapingException(
+                'Emission date not found.',
+                details={
+                    'template': 'PrNfceExtractor',
+                    'field': 'issued_at',
+                    'reason': 'missing_node',
+                },
+            )
 
         text = clean_text(infos) or ''
         match = re.search(r'Emissão:\s*(\d{2}/\d{2}/\d{4}\s+\d{2}:\d{2}:\d{2})', text)
         if not match:
-            raise NfceScrapingException('Emission date not found.', details={"template": "PrNfceExtractor", "field": "issued_at", "reason": "pattern_mismatch"})
+            raise NfceScrapingException(
+                'Emission date not found.',
+                details={
+                    'template': 'PrNfceExtractor',
+                    'field': 'issued_at',
+                    'reason': 'pattern_mismatch',
+                },
+            )
 
         try:
             return datetime.strptime(match.group(1), '%d/%m/%Y %H:%M:%S')
         except ValueError:
-            raise NfceScrapingException('Invalid emission date format.', details={"template": "PrNfceExtractor", "field": "issued_at", "value": match.group(1)})
+            raise NfceScrapingException(
+                'Invalid emission date format.',
+                details={
+                    'template': 'PrNfceExtractor',
+                    'field': 'issued_at',
+                    'value': match.group(1),
+                },
+            )
 
     @staticmethod
     def _extract_value_by_label(soup: BeautifulSoup, label_text: str) -> str | None:
@@ -131,7 +158,10 @@ class PrNfceExtractor(TemplateNfceExtractor):
     def _extract_total_value(self, soup: BeautifulSoup) -> Decimal:
         val = self._extract_value_by_label(soup, 'Valor a pagar')
         if not val:
-            raise NfceScrapingException('Total value not found.', details={"template": "PrNfceExtractor", "field": "total_value"})
+            raise NfceScrapingException(
+                'Total value not found.',
+                details={'template': 'PrNfceExtractor', 'field': 'total_value'},
+            )
         return parse_brazilian_decimal(val)
 
     @override
@@ -200,5 +230,5 @@ class NfceExtractorFactory:
 
         raise NfceScrapingException(
             f'No NFC-e extractor found for the provided URL: {url}',
-            details={"url": url}
+            details={'url': url},
         )

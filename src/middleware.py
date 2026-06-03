@@ -7,6 +7,10 @@ request_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar(
     'request_id', default=''
 )
 
+current_user_ctx: contextvars.ContextVar[int | None] = contextvars.ContextVar(
+    'current_user_id', default=None
+)
+
 
 class RequestIdMiddleware:
     def __init__(self, app: ASGIApp):

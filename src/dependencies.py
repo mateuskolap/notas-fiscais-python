@@ -4,6 +4,7 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.actions.activity_log_actions import ActivityLogActions
 from src.actions.auth_actions import AuthActions
 from src.actions.establishment_actions import EstablishmentActions
 from src.actions.invoice_actions import InvoiceActions
@@ -13,6 +14,8 @@ from src.actions.user_actions import UserActions
 from src.entities.user_entity import UserEntity
 from src.enums.permission_enum import PermissionEnum
 from src.exceptions.base_exceptions import ForbiddenException, UnauthorizedException
+from src.middleware import current_user_ctx
+from src.repositories.activity_log_repository import ActivityLogRepository
 from src.repositories.database import get_session
 from src.repositories.establishment_repository import EstablishmentRepository
 from src.repositories.invoice_item_repository import InvoiceItemRepository
@@ -114,7 +117,8 @@ async def get_current_user(
     user_id = int(payload['sub'])
     user = await repository.find_by_id(user_id)
     if not user:
-        raise UnauthorizedException('User not found', details={"user_id": user_id})
+        raise UnauthorizedException('User not found', details={'user_id': user_id})
+    current_user_ctx.set(user.id)
     return user
 
 
@@ -145,7 +149,9 @@ def require_permission(permission: PermissionEnum):
     ) -> UserEntity:
         user_perms = await role_actions.get_user_permissions(current_user.id)
         if permission.value not in user_perms:
-            raise ForbiddenException('Permission denied', details={"required_permission": permission.value})
+            raise ForbiddenException(
+                'Permission denied', details={'required_permission': permission.value}
+            )
         return current_user
 
     return dependency
@@ -158,3 +164,16 @@ async def get_establishment_actions(
 
 
 EstablishmentAct = Annotated[EstablishmentActions, Depends(get_establishment_actions)]
+
+ActivityLogRepo = Annotated[
+    ActivityLogRepository, Depends(_repository_dependency(ActivityLogRepository))
+]
+
+
+async def get_activity_log_actions(
+    repository: ActivityLogRepo,
+) -> ActivityLogActions:
+    return ActivityLogActions(repository)
+
+
+ActivityLogAct = Annotated[ActivityLogActions, Depends(get_activity_log_actions)]
