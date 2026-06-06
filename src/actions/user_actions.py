@@ -1,5 +1,8 @@
+from sqlalchemy import select
+
 from src.actions.base_actions import BaseActions
 from src.dtos.user_dtos import UserChangePassword, UserCreate, UserUpdate
+from src.entities.role_entity import RoleEntity
 from src.entities.user_entity import UserEntity
 from src.exceptions.base_exceptions import (
     ConflictException,
@@ -28,6 +31,13 @@ class UserActions(BaseActions[UserEntity]):
             email=data.email,
             password=hash_password(data.password),
         )
+
+        result = await self.repository.session.execute(
+            select(RoleEntity).where(RoleEntity.name == 'User')
+        )
+        default_role = result.scalar_one_or_none()
+        if default_role:
+            user.roles.append(default_role)
 
         return await self.repository.create(user)
 

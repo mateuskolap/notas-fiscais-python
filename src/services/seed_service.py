@@ -45,6 +45,15 @@ async def seed_roles(session: AsyncSession) -> None:
         await session.flush()
         await session.refresh(admin_role)
 
+    result = await session.execute(select(RoleEntity).where(RoleEntity.name == 'User'))
+    user_role = result.scalar_one_or_none()
+
+    if not user_role:
+        user_role = RoleEntity(name='User', description='Default user role')
+        session.add(user_role)
+        await session.flush()
+        await session.refresh(user_role)
+
     result = await session.execute(select(PermissionEntity))
     all_perms = result.scalars().all()
 
