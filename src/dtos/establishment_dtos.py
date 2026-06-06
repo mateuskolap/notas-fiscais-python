@@ -8,7 +8,7 @@ from src.dtos.base_dtos import BaseFilterParams, BaseReadDTO, BaseWriteDTO
 
 class EstablishmentBase(BaseModel):
     name: str = Field(..., max_length=255)
-    business_tin: str = Field(..., max_length=20)
+    business_tin: str | None = Field(default=None, max_length=20)
     address: str | None = None
 
 
@@ -26,6 +26,7 @@ class EstablishmentRead(EstablishmentBase, BaseReadDTO):
     id: int
     created_at: datetime
     updated_at: datetime
+    is_manual: bool
 
 
 class EstablishmentFilterParams(BaseFilterParams):

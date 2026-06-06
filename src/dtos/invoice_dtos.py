@@ -2,7 +2,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from src.dtos.base_dtos import BaseFilterParams, BaseReadDTO
 
@@ -22,6 +22,7 @@ class InvoiceItemResponse(BaseReadDTO):
     quantity: Decimal
     unit_price: Decimal
     total_price: Decimal
+    is_manual: bool
 
 
 class InvoiceUserResponse(BaseReadDTO):
@@ -32,11 +33,13 @@ class InvoiceUserResponse(BaseReadDTO):
 
 class InvoiceResponse(BaseReadDTO):
     id: int
-    establishment: EstablishmentResponse
-    source_url: str
+    establishment: EstablishmentResponse | None
+    source_url: str | None
     total_value: Decimal
     discount_value: Decimal
     issued_at: datetime
+    is_manual: bool
+    is_edited_manually: bool
 
 
 class InvoiceDetailResponse(InvoiceResponse):
@@ -58,3 +61,35 @@ class InvoiceFilterParams(BaseFilterParams):
 class InvoiceItemFilterParams(BaseFilterParams):
     description: str | None = None
     order_by: Literal['id', 'description', 'quantity', 'total_price'] | None = 'id'
+
+
+class InvoiceManualCreate(BaseModel):
+    establishment_id: int | None = Field(default=None, description='Establishment ID')
+    issued_at: datetime = Field(..., description='Invoice emission date')
+    total_value: Decimal = Field(
+        default=Decimal('0.0'),
+        ge=0,
+        description='Invoice total value (will be updated if items are added)',
+    )
+
+
+class InvoiceManualUpdate(BaseModel):
+    establishment_id: int | None = Field(default=None)
+    issued_at: datetime | None = Field(default=None)
+    total_value: Decimal | None = Field(default=None, ge=0)
+
+
+class InvoiceItemManualCreate(BaseModel):
+    description: str = Field(..., min_length=1, max_length=500)
+    quantity: Decimal = Field(..., gt=0)
+    unit_price: Decimal = Field(..., ge=0)
+    unit: str = Field(..., min_length=1, max_length=20)
+    code: str | None = Field(default=None, max_length=50)
+
+
+class InvoiceItemManualUpdate(BaseModel):
+    description: str | None = Field(default=None, min_length=1, max_length=500)
+    quantity: Decimal | None = Field(default=None, gt=0)
+    unit_price: Decimal | None = Field(default=None, ge=0)
+    unit: str | None = Field(default=None, min_length=1, max_length=20)
+    code: str | None = Field(default=None, max_length=50)

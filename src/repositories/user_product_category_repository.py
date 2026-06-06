@@ -25,3 +25,23 @@ class UserProductCategoryRepository(
         )
         result = await self.session.execute(query)
         return result.scalars().unique().all()
+
+    async def find_by_user_and_id(
+        self, user_id: int, category_id: int
+    ) -> UserProductCategoryEntity | None:
+        query = self._base_query().where(
+            UserProductCategoryEntity.user_id == user_id,
+            UserProductCategoryEntity.id == category_id,
+        )
+        result = await self.session.execute(query)
+        return result.scalars().first()
+
+    async def find_by_user_and_slug(
+        self, user_id: int, slug: str
+    ) -> UserProductCategoryEntity | None:
+        query = self._base_query().where(
+            UserProductCategoryEntity.user_id == user_id,
+            UserProductCategoryEntity.custom_slug == slug,
+        )
+        result = await self.session.execute(query)
+        return result.scalars().first()

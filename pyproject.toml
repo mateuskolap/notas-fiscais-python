@@ -17,6 +17,7 @@ dependencies = [
     "pydantic-settings>=2.14.0",
     "pyjwt>=2.12.1",
     "sqlalchemy[asyncio]>=2.0.49",
+    "unidecode>=1.4.0",
 ]
 
 [dependency-groups]

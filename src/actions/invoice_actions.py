@@ -95,12 +95,15 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
                 )
             )
 
+        calculated_total_value = sum(
+            item.quantity * item.unit_price for item in parsed.items
+        )
         invoice = await self.invoice_repo.create(
             InvoiceEntity(
                 user_id=user.id,
                 establishment_id=establishment.id,
                 source_url=url,
-                total_value=parsed.total_value,
+                total_value=calculated_total_value,
                 discount_value=parsed.discount_value,
                 issued_at=parsed.issued_at,
             )
@@ -112,6 +115,9 @@ class InvoiceActions(BaseActions[InvoiceEntity]):
             description_transform=lambda d: d.upper(),
             invoice_id=invoice.id,
         )
+
+        for item in items_to_create:
+            item.total_price = item.quantity * item.unit_price
 
         await self.invoice_item_repo.create_bulk(items_to_create)
 

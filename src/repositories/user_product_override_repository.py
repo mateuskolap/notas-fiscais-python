@@ -8,6 +8,4 @@ class UserProductOverrideRepository(
     async def find_by_user_and_product(
         self, user_id: int, product_id: int
     ) -> UserProductOverrideEntity | None:
-        return await self.find_one_by(
-            user_id=user_id, canonical_product_id=product_id
-        )
+        return await self.find_one_by(user_id=user_id, canonical_product_id=product_id)

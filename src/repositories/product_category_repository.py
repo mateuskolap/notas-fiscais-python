@@ -18,7 +18,8 @@ class ProductCategoryRepository(
 
     async def find_root_categories(self) -> Sequence[ProductCategoryEntity]:
         query = (
-            self._base_query()
+            self
+            ._base_query()
             .where(ProductCategoryEntity.parent_id.is_(None))
             .order_by(ProductCategoryEntity.position.asc())
         )
@@ -26,16 +27,20 @@ class ProductCategoryRepository(
         return result.scalars().unique().all()
 
     async def list_all_for_user(self, user_id: int) -> Sequence[ProductCategoryEntity]:
-        query = select(ProductCategoryEntity).outerjoin(
-            UserProductCategoryEntity,
-            and_(
-                UserProductCategoryEntity.category_id == ProductCategoryEntity.id,
-                UserProductCategoryEntity.user_id == user_id,
-            ),
-        ).where(
-            or_(
-                ProductCategoryEntity.is_default,
-                UserProductCategoryEntity.id.isnot(None)
+        query = (
+            select(ProductCategoryEntity)
+            .outerjoin(
+                UserProductCategoryEntity,
+                and_(
+                    UserProductCategoryEntity.category_id == ProductCategoryEntity.id,
+                    UserProductCategoryEntity.user_id == user_id,
+                ),
+            )
+            .where(
+                or_(
+                    ProductCategoryEntity.is_default,
+                    UserProductCategoryEntity.id.isnot(None),
+                )
             )
         )
 

@@ -51,7 +51,9 @@ class CanonicalProductRepository(
                 func.avg(Item.unit_price).label('avg_price'),
                 func.min(Item.unit_price).label('min_price'),
                 func.max(Item.unit_price).label('max_price'),
-                func.count(func.distinct(Invoice.establishment_id)).label('market_count'),
+                func.count(func.distinct(Invoice.establishment_id)).label(
+                    'market_count'
+                ),
             )
             .select_from(Canonical)
             .join(Match, Match.canonical_product_id == Canonical.id)
@@ -90,9 +92,17 @@ class CanonicalProductRepository(
         Override = aliased(UserProductOverrideEntity)
         Canonical = aliased(CanonicalProductEntity)
 
-        product_query = select(Canonical, Override).outerjoin(
-            Override, and_(Override.canonical_product_id == Canonical.id, Override.user_id == user_id)
-        ).where(Canonical.id == canonical_product_id)
+        product_query = (
+            select(Canonical, Override)
+            .outerjoin(
+                Override,
+                and_(
+                    Override.canonical_product_id == Canonical.id,
+                    Override.user_id == user_id,
+                ),
+            )
+            .where(Canonical.id == canonical_product_id)
+        )
 
         product_res = await self.session.execute(product_query)
         return product_res.first()
@@ -110,7 +120,8 @@ class CanonicalProductRepository(
                 Establishment.name.label('market_name'),
                 Item.unit_price,
                 Invoice.issued_at,
-                func.row_number()
+                func
+                .row_number()
                 .over(
                     partition_by=Establishment.id,
                     order_by=desc(Invoice.issued_at),
@@ -130,9 +141,11 @@ class CanonicalProductRepository(
             .subquery()
         )
 
-        query = select(subq.c.market_name, subq.c.unit_price, subq.c.issued_at).where(
-            subq.c.rn == 1
-        ).order_by(subq.c.unit_price)
+        query = (
+            select(subq.c.market_name, subq.c.unit_price, subq.c.issued_at)
+            .where(subq.c.rn == 1)
+            .order_by(subq.c.unit_price)
+        )
 
         result = await self.session.execute(query)
         return result.all()

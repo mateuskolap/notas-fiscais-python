@@ -8,7 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.actions.auth_actions import AuthActions
 from src.actions.establishment_actions import EstablishmentActions
 from src.actions.invoice_actions import InvoiceActions
+from src.actions.invoice_crud_actions import InvoiceCrudActions
 from src.actions.nfce_actions import NfceActions
+from src.actions.product_category_actions import ProductCategoryActions
 from src.actions.product_normalization_actions import ProductNormalizationActions
 from src.actions.product_search_actions import ProductSearchActions
 from src.actions.role_actions import RoleActions
@@ -29,6 +31,9 @@ from src.repositories.product_category_repository import ProductCategoryReposito
 from src.repositories.product_match_repository import ProductMatchRepository
 from src.repositories.refresh_token_repository import RefreshTokenRepository
 from src.repositories.role_repository import RoleRepository
+from src.repositories.user_product_category_repository import (
+    UserProductCategoryRepository,
+)
 from src.repositories.user_product_override_repository import (
     UserProductOverrideRepository,
 )
@@ -93,11 +98,13 @@ AiInteractionRepo = Annotated[
 ]
 
 ProductCategoryRepo = Annotated[
-    ProductCategoryRepository, Depends(_repository_dependency(ProductCategoryRepository))
+    ProductCategoryRepository,
+    Depends(_repository_dependency(ProductCategoryRepository)),
 ]
 
 CanonicalProductRepo = Annotated[
-    CanonicalProductRepository, Depends(_repository_dependency(CanonicalProductRepository))
+    CanonicalProductRepository,
+    Depends(_repository_dependency(CanonicalProductRepository)),
 ]
 
 ProductMatchRepo = Annotated[
@@ -105,7 +112,13 @@ ProductMatchRepo = Annotated[
 ]
 
 UserProductOverrideRepo = Annotated[
-    UserProductOverrideRepository, Depends(_repository_dependency(UserProductOverrideRepository))
+    UserProductOverrideRepository,
+    Depends(_repository_dependency(UserProductOverrideRepository)),
+]
+
+UserProductCategoryRepo = Annotated[
+    UserProductCategoryRepository,
+    Depends(_repository_dependency(UserProductCategoryRepository)),
 ]
 
 
@@ -187,7 +200,9 @@ async def get_product_normalization_actions(
     )
 
 
-ProductNormAct = Annotated[ProductNormalizationActions, Depends(get_product_normalization_actions)]
+ProductNormAct = Annotated[
+    ProductNormalizationActions, Depends(get_product_normalization_actions)
+]
 
 
 async def get_product_search_actions(
@@ -199,6 +214,18 @@ async def get_product_search_actions(
 ProductSearchAct = Annotated[ProductSearchActions, Depends(get_product_search_actions)]
 
 
+async def get_product_category_actions(
+    repository: ProductCategoryRepo,
+    user_category_repo: UserProductCategoryRepo,
+) -> ProductCategoryActions:
+    return ProductCategoryActions(repository, user_category_repo)
+
+
+ProductCategoryAct = Annotated[
+    ProductCategoryActions, Depends(get_product_category_actions)
+]
+
+
 async def get_invoice_actions(
     nfce_actions: NfceAct,
     establishment_repo: EstablishmentRepo,
@@ -207,11 +234,25 @@ async def get_invoice_actions(
     product_norm_actions: ProductNormAct,
 ) -> InvoiceActions:
     return InvoiceActions(
-        nfce_actions, establishment_repo, invoice_repo, invoice_item_repo, product_norm_actions
+        nfce_actions,
+        establishment_repo,
+        invoice_repo,
+        invoice_item_repo,
+        product_norm_actions,
     )
 
 
 InvoiceAct = Annotated[InvoiceActions, Depends(get_invoice_actions)]
+
+
+async def get_invoice_crud_actions(
+    invoice_repo: InvoiceRepo,
+    invoice_item_repo: InvoiceItemRepo,
+) -> InvoiceCrudActions:
+    return InvoiceCrudActions(invoice_repo, invoice_item_repo)
+
+
+InvoiceCrudAct = Annotated[InvoiceCrudActions, Depends(get_invoice_crud_actions)]
 
 
 # ==============================================================================

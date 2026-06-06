@@ -5,7 +5,7 @@ from src.middleware import RequestIdMiddleware
 from src.routes.v1 import router as v1_router
 
 app = FastAPI(
-    title='Notas Fiscais API',
+    title='Invoices API',
     version='0.1.0',
     prefix='/api',
 )

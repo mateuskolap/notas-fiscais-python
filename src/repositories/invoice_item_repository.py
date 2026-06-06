@@ -1,5 +1,7 @@
 from typing import Sequence
 
+from sqlalchemy import func, select
+
 from src.dtos.invoice_dtos import InvoiceItemFilterParams
 from src.entities.invoice_item_entity import InvoiceItemEntity
 from src.repositories.base_repository import BaseRepository
@@ -26,3 +28,10 @@ class InvoiceItemRepository(BaseRepository[InvoiceItemEntity], model=InvoiceItem
                     InvoiceItemEntity.description.ilike(f'%{filters.description}%')
                 )
         return query
+
+    async def get_total_price_for_invoice(self, invoice_id: int) -> float:
+        stmt = select(
+            func.coalesce(func.sum(InvoiceItemEntity.total_price), 0.0)
+        ).where(InvoiceItemEntity.invoice_id == invoice_id)
+        result = await self.session.execute(stmt)
+        return float(result.scalar_one())

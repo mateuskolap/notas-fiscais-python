@@ -26,10 +26,18 @@ class CanonicalProductEntity(EntityMixin):
     )
 
     # Optional Fields
-    brand: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True, default=None)
-    quantity_label: Mapped[str | None] = mapped_column(String(50), nullable=True, default=None)
-    variant: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
-    unit_of_measure: Mapped[str | None] = mapped_column(String(20), nullable=True, default=None)
+    brand: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, index=True, default=None
+    )
+    quantity_label: Mapped[str | None] = mapped_column(
+        String(50), nullable=True, default=None
+    )
+    variant: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, default=None
+    )
+    unit_of_measure: Mapped[str | None] = mapped_column(
+        String(20), nullable=True, default=None
+    )
     measure_value: Mapped[Decimal | None] = mapped_column(
         Numeric(10, 4), nullable=True, default=None
     )

@@ -3,12 +3,16 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path
 
-from src.dependencies import CurrentUser, InvoiceAct
+from src.dependencies import CurrentUser, InvoiceAct, InvoiceCrudAct
 from src.dtos.invoice_dtos import (
     InvoiceDetailResponse,
     InvoiceFilterParams,
     InvoiceItemFilterParams,
+    InvoiceItemManualCreate,
+    InvoiceItemManualUpdate,
     InvoiceItemResponse,
+    InvoiceManualCreate,
+    InvoiceManualUpdate,
     InvoiceResponse,
 )
 from src.dtos.nfce_dtos import ExtractInvoiceRequest
@@ -126,7 +130,96 @@ async def extract_invoice(
     current_user: CurrentUser,
 ):
     """
-    Extract invoice and item details from a valid HTTPS NFC-e portal URL (e.g. Paraná's state portal),
+    Extract invoice and item details from a valid HTTPS NFC-e portal URL (e.g. Parana's state portal),
     and persist it under the authenticated user.
     """
     return await actions.extract_and_persist(data.url, current_user)
+
+
+@router.post(
+    '',
+    status_code=HTTPStatus.CREATED,
+    response_model=InvoiceResponse,
+    summary='Create a manual invoice',
+)
+async def create_manual_invoice(
+    data: InvoiceManualCreate,
+    crud_actions: InvoiceCrudAct,
+    current_user: CurrentUser,
+):
+    return await crud_actions.create_manual_invoice(current_user.id, data)
+
+
+@router.put(
+    '/{invoice_id}',
+    status_code=HTTPStatus.OK,
+    response_model=InvoiceResponse,
+    summary='Update a manual invoice',
+)
+async def update_manual_invoice(
+    invoice_id: int,
+    data: InvoiceManualUpdate,
+    crud_actions: InvoiceCrudAct,
+    current_user: CurrentUser,
+):
+    return await crud_actions.update_manual_invoice(current_user.id, invoice_id, data)
+
+
+@router.delete(
+    '/{invoice_id}',
+    status_code=HTTPStatus.NO_CONTENT,
+    summary='Delete an invoice',
+)
+async def delete_manual_invoice(
+    invoice_id: int,
+    crud_actions: InvoiceCrudAct,
+    current_user: CurrentUser,
+):
+    await crud_actions.delete_manual_invoice(current_user.id, invoice_id)
+
+
+@router.post(
+    '/{invoice_id}/items',
+    status_code=HTTPStatus.CREATED,
+    response_model=InvoiceItemResponse,
+    summary='Add an item to an invoice manually',
+)
+async def add_item_to_invoice(
+    invoice_id: int,
+    data: InvoiceItemManualCreate,
+    crud_actions: InvoiceCrudAct,
+    current_user: CurrentUser,
+):
+    return await crud_actions.add_item_to_invoice(current_user.id, invoice_id, data)
+
+
+@router.put(
+    '/{invoice_id}/items/{item_id}',
+    status_code=HTTPStatus.OK,
+    response_model=InvoiceItemResponse,
+    summary='Update an invoice item manually',
+)
+async def update_invoice_item(
+    invoice_id: int,
+    item_id: int,
+    data: InvoiceItemManualUpdate,
+    crud_actions: InvoiceCrudAct,
+    current_user: CurrentUser,
+):
+    return await crud_actions.update_invoice_item(
+        current_user.id, invoice_id, item_id, data
+    )
+
+
+@router.delete(
+    '/{invoice_id}/items/{item_id}',
+    status_code=HTTPStatus.NO_CONTENT,
+    summary='Delete an invoice item manually',
+)
+async def delete_invoice_item(
+    invoice_id: int,
+    item_id: int,
+    crud_actions: InvoiceCrudAct,
+    current_user: CurrentUser,
+):
+    await crud_actions.delete_invoice_item(current_user.id, invoice_id, item_id)

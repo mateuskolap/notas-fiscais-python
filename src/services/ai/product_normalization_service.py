@@ -1,4 +1,5 @@
 import json
+import logging
 from decimal import Decimal
 
 from src.dtos.ai_dtos import AiCompletionRequest
@@ -6,7 +7,6 @@ from src.dtos.product_dtos import NormalizedProductResult
 from src.enums.ai_enum import AiTaskTypeEnum
 from src.repositories.product_category_repository import ProductCategoryRepository
 from src.services.ai.ai_service import AiService
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -30,24 +30,24 @@ class ProductNormalizationService:
         )
 
         system_prompt = f"""
-        Você é um especialista em produtos de supermercado brasileiro.
+        You are an expert in Brazilian supermarket products.
 
-        Dado a lista de descrições brutas de produtos de notas fiscais abaixo,
-        extraia as seguintes informações para CADA produto:
+        Given the list of raw product descriptions from invoices below,
+        extract the following information for EACH product:
 
-        1. normalized_name: Nome genérico limpo (ex: "Arroz Parboilizado")
-        2. brand: Marca do produto (ex: "Camil"). Null se não identificável.
-        3. quantity_label: Quantidade com unidade (ex: "5kg", "1L", "6un"). Null se não identificável.
-        4. variant: Variante/tipo (ex: "Tipo 1", "Integral", "Sem Lactose"). Null se não aplicável.
-        5. unit_of_measure: Unidade de medida normalizada: kg, g, l, ml, un. Null se não identificável.
-        6. measure_value: Valor numérico da quantidade (ex: 5.0, 1.0, 6.0). Null se não identificável.
-        7. category_slug: Slug da categoria mais adequada da lista fornecida.
-        8. confidence: Sua confiança na classificação de 0.0 a 1.0 (Decimal)
+        1. normalized_name: Clean generic name (e.g., "Arroz Parboilizado")
+        2. brand: Brand of the product (e.g., "Camil"). Null if not identifiable.
+        3. quantity_label: Quantity with unit (e.g., "5kg", "1L", "6un"). Null if not identifiable.
+        4. variant: Variant/type (e.g., "Tipo 1", "Integral", "Sem Lactose"). Null if not applicable.
+        5. unit_of_measure: Normalized unit of measure: kg, g, l, ml, un. Null if not identifiable.
+        6. measure_value: Numeric value of the quantity (e.g., 5.0, 1.0, 6.0). Null if not identifiable.
+        7. category_slug: Slug of the most appropriate category from the provided list.
+        8. confidence: Your confidence in the classification from 0.0 to 1.0 (Decimal)
 
-        CATEGORIAS DISPONÍVEIS:
+        AVAILABLE CATEGORIES:
         {categories_text}
 
-        Responda EXCLUSIVAMENTE em JSON válido no formato de lista de objetos:
+        Respond EXCLUSIVELY in valid JSON in the format of a list of objects:
         [
         {{
             "index": 0,
@@ -61,11 +61,11 @@ class ProductNormalizationService:
             "confidence": 0.95
         }}
         ]
-        A propriedade 'index' deve corresponder exatamente ao índice do produto fornecido na entrada.
-        Seja muito preciso. Não invente marcas se a descrição não contiver uma clara.
+        The 'index' property must correspond exactly to the product index provided in the input.
+        Be extremely precise. Do not invent brands if the description does not contain a clear one.
         """
 
-        prompt = f'PRODUTOS PARA NORMALIZAR:\n{descriptions_text}'
+        prompt = f'PRODUCTS TO NORMALIZE:\n{descriptions_text}'
 
         request = AiCompletionRequest(
             prompt=prompt,
@@ -78,7 +78,9 @@ class ProductNormalizationService:
         logger.info(f'Sending {len(descriptions)} items to Gemini...')
         try:
             response = await self._ai_service.complete(request)
-            logger.info(f'Received response from Gemini. Usage: {response.input_tokens} input, {response.output_tokens} output.')
+            logger.info(
+                f'Received response from Gemini. Usage: {response.input_tokens} input, {response.output_tokens} output.'
+            )
         except Exception as exc:
             logger.error(f'Gemini completion failed: {exc}')
             return []

@@ -20,6 +20,7 @@ class InvoiceItemEntity(SoftDeleteEntityMixin):
     quantity: Mapped[Decimal] = mapped_column(Numeric(10, 4), nullable=False)
     unit_price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     total_price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    is_manual: Mapped[bool] = mapped_column(default=False, server_default='false')
 
     invoice: Mapped['InvoiceEntity'] = relationship(  # noqa: F821
         back_populates='items', init=False

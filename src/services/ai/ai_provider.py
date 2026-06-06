@@ -61,7 +61,9 @@ class GeminiAiProvider(AiProvider):
             ),
         ]
 
-    def _build_config(self, request: AiCompletionRequest) -> types.GenerateContentConfig:
+    def _build_config(
+        self, request: AiCompletionRequest
+    ) -> types.GenerateContentConfig:
         return types.GenerateContentConfig(
             system_instruction=request.system_prompt,
             temperature=request.temperature,

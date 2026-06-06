@@ -21,8 +21,12 @@ class UserProductCategoryEntity(EntityMixin):
         index=True,
         default=None,
     )
-    custom_name: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
-    custom_slug: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
+    custom_name: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, default=None
+    )
+    custom_slug: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, default=None
+    )
     custom_parent_id: Mapped[int | None] = mapped_column(
         ForeignKey('user_product_categories.id', ondelete='CASCADE'),
         nullable=True,

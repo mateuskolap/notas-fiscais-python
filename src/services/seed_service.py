@@ -104,67 +104,87 @@ async def seed_product_categories(session: AsyncSession) -> None:
     logger.info('Seeding product categories...')
 
     categories_tree = {
-        'alimentos': ('Alimentos', {
-            'graos-e-cereais': 'Grãos e Cereais',
-            'carnes-e-aves': 'Carnes e Aves',
-            'laticinios': 'Laticínios',
-            'frutas-e-verduras': 'Frutas e Verduras',
-            'padaria-e-confeitaria': 'Padaria e Confeitaria',
-            'congelados': 'Congelados',
-            'enlatados-e-conservas': 'Enlatados e Conservas',
-            'massas-e-molhos': 'Massas e Molhos',
-            'temperos-e-condimentos': 'Temperos e Condimentos',
-            'doces-e-sobremesas': 'Doces e Sobremesas',
-            'oleos-e-azeites': 'Óleos e Azeites',
-        }),
-        'bebidas': ('Bebidas', {
-            'agua-e-sucos': 'Água e Sucos',
-            'refrigerantes': 'Refrigerantes',
-            'bebidas-alcoolicas': 'Bebidas Alcoólicas',
-            'cafe-e-cha': 'Café e Chá',
-            'bebidas-lacteas': 'Bebidas Lácteas',
-        }),
-        'limpeza': ('Limpeza', {
-            'detergentes-e-saboes': 'Detergentes e Sabões',
-            'desinfetantes': 'Desinfetantes',
-            'limpeza-de-roupas': 'Limpeza de Roupas',
-            'acessorios-de-limpeza': 'Acessórios de Limpeza',
-        }),
-        'higiene-pessoal': ('Higiene Pessoal', {
-            'banho-e-corpo': 'Banho e Corpo',
-            'bucal': 'Bucal',
-            'cabelos': 'Cabelos',
-            'desodorantes': 'Desodorantes',
-            'papel-higienico-e-lencos': 'Papel Higiênico e Lenços',
-        }),
-        'bebes-e-criancas': ('Bebês e Crianças', {
-            'fraldas': 'Fraldas',
-            'alimentacao-infantil': 'Alimentação Infantil',
-            'higiene-infantil': 'Higiene Infantil',
-        }),
-        'pet': ('Pet', {
-            'racao': 'Ração',
-            'acessorios-pet': 'Acessórios Pet',
-        }),
-        'outros': ('Outros', {
-            'utensilios-domesticos': 'Utensílios Domésticos',
-            'descartaveis': 'Descartáveis',
-            'diversos': 'Diversos',
-        })
+        'alimentos': (
+            'Alimentos',
+            {
+                'graos-e-cereais': 'Grãos e Cereais',
+                'carnes-e-aves': 'Carnes e Aves',
+                'laticinios': 'Laticínios',
+                'frutas-e-verduras': 'Frutas e Verduras',
+                'padaria-e-confeitaria': 'Padaria e Confeitaria',
+                'congelados': 'Congelados',
+                'enlatados-e-conservas': 'Enlatados e Conservas',
+                'massas-e-molhos': 'Massas e Molhos',
+                'temperos-e-condimentos': 'Temperos e Condimentos',
+                'doces-e-sobremesas': 'Doces e Sobremesas',
+                'oleos-e-azeites': 'Óleos e Azeites',
+            },
+        ),
+        'bebidas': (
+            'Bebidas',
+            {
+                'agua-e-sucos': 'Água e Sucos',
+                'refrigerantes': 'Refrigerantes',
+                'bebidas-alcoolicas': 'Bebidas Alcoólicas',
+                'cafe-e-cha': 'Café e Chá',
+                'bebidas-lacteas': 'Bebidas Lácteas',
+            },
+        ),
+        'limpeza': (
+            'Limpeza',
+            {
+                'detergentes-e-saboes': 'Detergentes e Sabões',
+                'desinfetantes': 'Desinfetantes',
+                'limpeza-de-roupas': 'Limpeza de Roupas',
+                'acessorios-de-limpeza': 'Acessórios de Limpeza',
+            },
+        ),
+        'higiene-pessoal': (
+            'Higiene Pessoal',
+            {
+                'banho-e-corpo': 'Banho e Corpo',
+                'bucal': 'Bucal',
+                'cabelos': 'Cabelos',
+                'desodorantes': 'Desodorantes',
+                'papel-higienico-e-lencos': 'Papel Higiênico e Lenços',
+            },
+        ),
+        'bebes-e-criancas': (
+            'Bebês e Crianças',
+            {
+                'fraldas': 'Fraldas',
+                'alimentacao-infantil': 'Alimentação Infantil',
+                'higiene-infantil': 'Higiene Infantil',
+            },
+        ),
+        'pet': (
+            'Pet',
+            {
+                'racao': 'Ração',
+                'acessorios-pet': 'Acessórios Pet',
+            },
+        ),
+        'outros': (
+            'Outros',
+            {
+                'utensilios-domesticos': 'Utensílios Domésticos',
+                'descartaveis': 'Descartáveis',
+                'diversos': 'Diversos',
+            },
+        ),
     }
 
     pos = 0
     for parent_slug, (parent_name, children) in categories_tree.items():
         result = await session.execute(
-            select(ProductCategoryEntity).where(ProductCategoryEntity.slug == parent_slug).where(ProductCategoryEntity.parent_id.is_(None))
+            select(ProductCategoryEntity)
+            .where(ProductCategoryEntity.slug == parent_slug)
+            .where(ProductCategoryEntity.parent_id.is_(None))
         )
         parent = result.scalar_one_or_none()
         if not parent:
             parent = ProductCategoryEntity(
-                name=parent_name,
-                slug=parent_slug,
-                position=pos,
-                is_default=True
+                name=parent_name, slug=parent_slug, position=pos, is_default=True
             )
             session.add(parent)
             await session.flush()
@@ -186,7 +206,7 @@ async def seed_product_categories(session: AsyncSession) -> None:
                     slug=child_slug,
                     parent_id=parent.id,
                     position=child_pos,
-                    is_default=True
+                    is_default=True,
                 )
                 session.add(child)
             child_pos += 1

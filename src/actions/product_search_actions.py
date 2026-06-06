@@ -58,8 +58,16 @@ class ProductSearchActions(BaseActions[CanonicalProductEntity]):
 
         canonical, override = product_row
 
-        name = override.custom_name if override and override.custom_name else canonical.normalized_name
-        brand = override.custom_brand if override and override.custom_brand else canonical.brand
+        name = (
+            override.custom_name
+            if override and override.custom_name
+            else canonical.normalized_name
+        )
+        brand = (
+            override.custom_brand
+            if override and override.custom_brand
+            else canonical.brand
+        )
 
         rows = await self.repository.get_price_comparison_by_market(
             user_id, canonical_product_id
@@ -94,8 +102,16 @@ class ProductSearchActions(BaseActions[CanonicalProductEntity]):
             raise NotFoundException('Product not found')
 
         canonical, override = product_row
-        name = override.custom_name if override and override.custom_name else canonical.normalized_name
-        brand = override.custom_brand if override and override.custom_brand else canonical.brand
+        name = (
+            override.custom_name
+            if override and override.custom_name
+            else canonical.normalized_name
+        )
+        brand = (
+            override.custom_brand
+            if override and override.custom_brand
+            else canonical.brand
+        )
 
         rows = await self.repository.get_price_history(user_id, canonical_product_id)
 

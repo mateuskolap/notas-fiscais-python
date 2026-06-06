@@ -43,7 +43,9 @@ async def run_normalization_batch():
 
         logger.info('Starting AI product normalization task...')
         created_count = await actions.normalize_unmatched_products(batch_size=15)
-        logger.info(f'Finished AI product normalization task. Created {created_count} canonical products.')
+        logger.info(
+            f'Finished AI product normalization task. Created {created_count} canonical products.'
+        )
 
         return created_count
 
@@ -71,7 +73,9 @@ async def run_matching_batch():
 
         logger.info('Starting database product matching task...')
         matched_count = await actions.match_unmatched_items(batch_size=100)
-        logger.info(f'Finished database product matching task. Linked {matched_count} items.')
+        logger.info(
+            f'Finished database product matching task. Linked {matched_count} items.'
+        )
 
         return matched_count
 

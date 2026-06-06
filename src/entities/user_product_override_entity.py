@@ -21,10 +21,16 @@ class UserProductOverrideEntity(SoftDeleteEntityMixin):
         index=True,
     )
     custom_category_id: Mapped[int | None] = mapped_column(
-        ForeignKey('product_categories.id', ondelete='SET NULL'), nullable=True, default=None
+        ForeignKey('product_categories.id', ondelete='SET NULL'),
+        nullable=True,
+        default=None,
     )
-    custom_name: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
-    custom_brand: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
+    custom_name: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, default=None
+    )
+    custom_brand: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, default=None
+    )
 
     user: Mapped['UserEntity'] = relationship(init=False)  # noqa: F821
     canonical_product: Mapped['CanonicalProductEntity'] = relationship(init=False)  # noqa: F821
