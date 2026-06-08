@@ -12,12 +12,19 @@ class EstablishmentActions(BaseActions[EstablishmentEntity]):
 
     async def create(self, data: EstablishmentCreate) -> EstablishmentEntity:
         if data.business_tin:
-            existing = await self.repository.find_by_tin(data.business_tin)
+            existing = await self.repository.find_by_tin_with_deleted(data.business_tin)
             if existing:
-                raise ConflictException(
-                    'CNPJ already registered',
-                    details={'field': 'business_tin', 'value': data.business_tin},
-                )
+                if existing.deleted_at is not None:
+                    existing.restore()
+                    existing.name = data.name
+                    existing.address = data.address
+                    existing.is_manual = True
+                    return await self.repository.update(existing)
+                else:
+                    raise ConflictException(
+                        'CNPJ already registered',
+                        details={'field': 'business_tin', 'value': data.business_tin},
+                    )
 
         establishment = EstablishmentEntity(
             name=data.name,
@@ -40,7 +47,9 @@ class EstablishmentActions(BaseActions[EstablishmentEntity]):
             and update_data['business_tin'] is not None
             and update_data['business_tin'] != establishment.business_tin
         ):
-            existing = await self.repository.find_by_tin(update_data['business_tin'])
+            existing = await self.repository.find_by_tin_with_deleted(
+                update_data['business_tin']
+            )
             if existing:
                 raise ConflictException(
                     'CNPJ already registered',

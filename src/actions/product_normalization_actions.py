@@ -219,8 +219,10 @@ class ProductNormalizationActions:
     async def apply_user_override(
         self, user_id: int, canonical_product_id: int, data: ProductOverrideRequest
     ) -> UserProductOverrideEntity:
-        override = await self._override_repository.find_by_user_and_product(
-            user_id, canonical_product_id
+        override = (
+            await self._override_repository.find_by_user_and_product_with_deleted(
+                user_id, canonical_product_id
+            )
         )
 
         if not override:
@@ -233,6 +235,9 @@ class ProductNormalizationActions:
             )
             return await self._override_repository.create(override)
         else:
+            if override.deleted_at is not None:
+                override.restore()
+
             if data.custom_name is not None:
                 override.custom_name = data.custom_name
             if data.custom_brand is not None:

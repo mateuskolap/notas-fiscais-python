@@ -4,6 +4,7 @@ from fastapi import APIRouter, Query, status
 
 from src.dependencies import CurrentUser, ProductNormAct, ProductSearchAct
 from src.dtos.product_dtos import (
+    CheapestProductByMarketResponse,
     PriceComparisonResponse,
     PriceHistoryResponse,
     ProductOverrideRequest,
@@ -24,6 +25,21 @@ async def search_products(
 ):
     params = ProductSearchParams(query=query, category_slug=category_slug, brand=brand)
     return await search_actions.search_products(current_user.id, params)
+
+
+@router.get('/cheapest-by-market', response_model=CheapestProductByMarketResponse)
+async def search_cheapest_product_by_market(
+    current_user: CurrentUser,
+    search_actions: ProductSearchAct,
+    query: Annotated[
+        str, Query(..., min_length=2, description='Product search term (e.g., Ketchup)')
+    ],
+    page: Annotated[int, Query(ge=1)] = 1,
+    size: Annotated[int, Query(ge=1, le=100)] = 20,
+):
+    return await search_actions.search_cheapest_by_market(
+        user_id=current_user.id, query_text=query, page=page, size=size
+    )
 
 
 @router.get('/{product_id}/price-comparison', response_model=PriceComparisonResponse)

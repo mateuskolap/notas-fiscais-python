@@ -19,12 +19,28 @@ class UserActions(BaseActions[UserEntity]):
         self.repository = repository
 
     async def create(self, data: UserCreate) -> UserEntity:
-        existing = await self.repository.find_by_email(data.email)
+        existing = await self.repository.find_by_email_with_deleted(data.email)
         if existing:
-            raise ConflictException(
-                'Email already registered',
-                details={'field': 'email', 'value': data.email},
-            )
+            if existing.deleted_at is not None:
+                existing.restore()
+                existing.name = data.name
+                existing.password = hash_password(data.password)
+
+                has_user_role = any(r.name == 'User' for r in existing.roles)
+                if not has_user_role:
+                    result = await self.repository.session.execute(
+                        select(RoleEntity).where(RoleEntity.name == 'User')
+                    )
+                    default_role = result.scalar_one_or_none()
+                    if default_role:
+                        existing.roles.append(default_role)
+
+                return await self.repository.update(existing)
+            else:
+                raise ConflictException(
+                    'Email already registered',
+                    details={'field': 'email', 'value': data.email},
+                )
 
         user = UserEntity(
             name=data.name,
@@ -47,7 +63,9 @@ class UserActions(BaseActions[UserEntity]):
         update_data = data.model_dump(exclude_unset=True)
 
         if 'email' in update_data and update_data['email'] != user.email:
-            existing = await self.repository.find_by_email(update_data['email'])
+            existing = await self.repository.find_by_email_with_deleted(
+                update_data['email']
+            )
             if existing:
                 raise ConflictException(
                     'Email already registered',

@@ -10,6 +10,18 @@ class EstablishmentRepository(
     async def find_by_tin(self, business_tin: str) -> EstablishmentEntity | None:
         return await self.find_one_by(business_tin=business_tin)
 
+    async def find_by_tin_with_deleted(
+        self, business_tin: str
+    ) -> EstablishmentEntity | None:
+        query = (
+            self
+            ._base_query()
+            .where(EstablishmentEntity.business_tin == business_tin)
+            .execution_options(include_deleted=True)
+        )
+        res = await self.session.execute(query)
+        return res.unique().scalar_one_or_none()
+
     def _apply_filters(self, query, filters: EstablishmentFilterParams | None):
         if not filters:
             return query

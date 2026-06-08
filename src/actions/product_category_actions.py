@@ -25,8 +25,8 @@ class ProductCategoryActions(BaseActions[ProductCategoryEntity]):
         self.user_category_repo = user_category_repo
 
     async def list_all_for_user(self, user_id: int) -> list[CategoryResponse]:
-        global_cats = await self.repository.find_all(is_default=True)
-        user_cats_all = await self.user_category_repo.find_all(user_id=user_id)
+        global_cats = await self.repository.find_all_by(is_default=True)
+        user_cats_all = await self.user_category_repo.find_all_by(user_id=user_id)
 
         override_map = {
             uc.category_id: uc for uc in user_cats_all if uc.category_id is not None

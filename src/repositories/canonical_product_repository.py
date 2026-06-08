@@ -179,3 +179,78 @@ class CanonicalProductRepository(
 
         result = await self.session.execute(query)
         return result.all()
+
+    async def get_cheapest_by_market(
+        self, user_id: int, query_text: str, page: int, size: int
+    ) -> tuple[Sequence[Row[Any]], int]:
+        Override = aliased(UserProductOverrideEntity)
+        Match = aliased(ProductMatchEntity)
+        Item = aliased(InvoiceItemEntity)
+        Invoice = aliased(InvoiceEntity)
+        Establishment = aliased(EstablishmentEntity)
+        Canonical = aliased(CanonicalProductEntity)
+
+        effective_name = func.coalesce(Override.custom_name, Canonical.normalized_name)
+        effective_brand = func.coalesce(Override.custom_brand, Canonical.brand)
+
+        subq = (
+            select(
+                Establishment.id.label('establishment_id'),
+                Establishment.name.label('establishment_name'),
+                Canonical.id.label('product_id'),
+                effective_name.label('product_name'),
+                effective_brand.label('product_brand'),
+                Item.unit_price.label('min_price'),
+                Invoice.issued_at.label('purchase_date'),
+                func
+                .row_number()
+                .over(
+                    partition_by=Establishment.id,
+                    order_by=Item.unit_price.asc(),
+                )
+                .label('rn'),
+            )
+            .select_from(Canonical)
+            .join(Match, Match.canonical_product_id == Canonical.id)
+            .join(Item, Item.id == Match.invoice_item_id)
+            .join(Invoice, Invoice.id == Item.invoice_id)
+            .join(Establishment, Establishment.id == Invoice.establishment_id)
+            .outerjoin(
+                Override,
+                and_(
+                    Override.canonical_product_id == Canonical.id,
+                    Override.user_id == user_id,
+                ),
+            )
+            .where(
+                and_(
+                    Establishment.is_manual.is_(False),
+                    Invoice.is_manual.is_(False),
+                    Invoice.is_edited_manually.is_(False),
+                    Item.is_manual.is_(False),
+                    effective_name.ilike(f'%{query_text}%'),
+                )
+            )
+            .subquery()
+        )
+
+        query = select(
+            subq.c.establishment_id,
+            subq.c.establishment_name,
+            subq.c.product_id,
+            subq.c.product_name,
+            subq.c.product_brand,
+            subq.c.min_price,
+            subq.c.purchase_date,
+        ).where(subq.c.rn == 1)
+
+        count_query = select(func.count()).select_from(query.subquery())
+        total_res = await self.session.execute(count_query)
+        total = total_res.scalar() or 0
+
+        query = (
+            query.order_by(subq.c.min_price.asc()).offset((page - 1) * size).limit(size)
+        )
+
+        result = await self.session.execute(query)
+        return result.all(), total

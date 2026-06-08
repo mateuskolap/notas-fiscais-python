@@ -80,3 +80,20 @@ class ProductOverrideRequest(BaseWriteDTO):
 
 class BasketComparisonRequest(BaseWriteDTO):
     product_ids: list[int]
+
+
+class CheapestProductByMarketItem(BaseModel):
+    establishment_id: int
+    establishment_name: str
+    product_id: int
+    product_name: str
+    product_brand: str | None
+    min_price: Decimal
+    purchase_date: date
+
+
+class CheapestProductByMarketResponse(BaseReadDTO):
+    items: list[CheapestProductByMarketItem]
+    total: int
+    page: int
+    size: int

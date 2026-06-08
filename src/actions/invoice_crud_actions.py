@@ -25,7 +25,7 @@ class InvoiceCrudActions:
             invoice_id
         )
 
-        invoice = await self._invoice_repo.get(invoice_id)
+        invoice = await self._invoice_repo.find_by_id(invoice_id)
         if not invoice:
             return
 
@@ -33,7 +33,7 @@ class InvoiceCrudActions:
         invoice.is_edited_manually = True
         invoice.discount_value = 0.0
 
-        await self._invoice_repo.update(invoice_id, invoice)
+        await self._invoice_repo.update(invoice)
 
     async def create_manual_invoice(
         self, user_id: int, data: InvoiceManualCreate
@@ -64,7 +64,7 @@ class InvoiceCrudActions:
         if data.total_value is not None:
             invoice.total_value = data.total_value
 
-        return await self._invoice_repo.update(invoice_id, invoice)
+        return await self._invoice_repo.update(invoice)
 
     async def delete_manual_invoice(self, user_id: int, invoice_id: int) -> None:
         invoice = await self._invoice_repo.find_by_id_and_user(invoice_id, user_id)
@@ -104,7 +104,7 @@ class InvoiceCrudActions:
         if not invoice:
             raise NotFoundException('Invoice not found.')
 
-        item = await self._invoice_item_repo.get(item_id)
+        item = await self._invoice_item_repo.find_by_id(item_id)
         if not item or item.invoice_id != invoice_id:
             raise NotFoundException('Invoice item not found.')
 
@@ -123,7 +123,7 @@ class InvoiceCrudActions:
         item.total_price = item.quantity * item.unit_price
         item.is_manual = True
 
-        updated_item = await self._invoice_item_repo.update(item_id, item)
+        updated_item = await self._invoice_item_repo.update(item)
         await self._recalculate_invoice_totals(invoice_id)
         return updated_item
 
@@ -134,7 +134,7 @@ class InvoiceCrudActions:
         if not invoice:
             raise NotFoundException('Invoice not found.')
 
-        item = await self._invoice_item_repo.get(item_id)
+        item = await self._invoice_item_repo.find_by_id(item_id)
         if not item or item.invoice_id != invoice_id:
             raise NotFoundException('Invoice item not found.')
 

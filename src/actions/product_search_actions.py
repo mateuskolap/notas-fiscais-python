@@ -4,6 +4,8 @@ from decimal import Decimal
 from src.actions.base_actions import BaseActions
 from src.dtos.product_dtos import (
     CanonicalProductResponse,
+    CheapestProductByMarketItem,
+    CheapestProductByMarketResponse,
     MarketPriceResponse,
     PriceComparisonResponse,
     PriceHistoryResponse,
@@ -131,4 +133,31 @@ class ProductSearchActions(BaseActions[CanonicalProductEntity]):
                 )
                 for row in rows
             ],
+        )
+
+    async def search_cheapest_by_market(
+        self, user_id: int, query_text: str, page: int, size: int
+    ) -> CheapestProductByMarketResponse:
+        rows, total = await self.repository.get_cheapest_by_market(
+            user_id, query_text, page, size
+        )
+
+        items = [
+            CheapestProductByMarketItem(
+                establishment_id=row.establishment_id,
+                establishment_name=row.establishment_name,
+                product_id=row.product_id,
+                product_name=row.product_name,
+                product_brand=row.product_brand,
+                min_price=Decimal(str(row.min_price)),
+                purchase_date=row.purchase_date.date(),
+            )
+            for row in rows
+        ]
+
+        return CheapestProductByMarketResponse(
+            items=items,
+            total=total,
+            page=page,
+            size=size,
         )
